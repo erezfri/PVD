@@ -17,7 +17,7 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
-//erezgays
+//erezgayss
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
