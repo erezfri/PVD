@@ -58,4 +58,15 @@
         android:layout_below="@+id/textView"
         android:layout_centerHorizontal="true" />
 
+    <TextView
+        android:layout_width="300px"
+        android:layout_height="100px"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="00:15:00"
+        android:id="@+id/textView8"
+        android:textSize="30dp"
+        android:layout_centerVertical="true"
+        android:layout_alignLeft="@+id/textView7"
+        android:layout_alignStart="@+id/textView7" />
+
 </RelativeLayout>
