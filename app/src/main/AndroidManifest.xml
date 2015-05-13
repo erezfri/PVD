@@ -16,6 +16,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".NextPageAferStart"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="next" />
+
+                <category android:name="next" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
