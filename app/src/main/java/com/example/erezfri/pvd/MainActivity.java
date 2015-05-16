@@ -2,16 +2,23 @@ package com.example.erezfri.pvd;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
+
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.location.Location;
 
 public class MainActivity extends ActionBarActivity {
-
+    Button btnShowLocation;
+    GPSTracker gps;
+    int counter = 0 ;
+    Location loc1 = new Location("old");
+    Location loc2 = new Location("new");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +47,38 @@ public class MainActivity extends ActionBarActivity {
 
         AlertDialog alert11 = builder1.create();
         alert11.show();
+        final TextView tv1 = (TextView) findViewById(R.id.textView);
+
+        btnShowLocation = (Button) findViewById(R.id.button);
+        btnShowLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                gps = new GPSTracker(MainActivity.this);
+                if (gps.CanGetLocation) {
+                    counter++;
+                    if (counter % 2 == 0) {
+                        loc2.setLatitude(gps.getLatitude());
+                        loc2.setLongitude(gps.getLongitude());
+                        float distance = loc2.distanceTo(loc1);
+                        tv1.setText("(latitude1: " + loc1.getLatitude() + "," + "longitude1: " + loc1.getLongitude() + ")+" + "(latitude2: " + loc2.getLatitude() + "," + "longitude2: " + loc2.getLongitude() + ")" + "distance:" + distance + "/n");
+                        // Toast.makeText(getApplicationContext(),"("+ loc2.getLatitude()+","+loc2.getLongitude()+") " +distance,Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(),"("+ (loc2.getLatitude()-gps.getLatitude())+","+(loc2.getLongitude()-gps.getLongitude())+")" ,Toast.LENGTH_LONG).show();
+
+
+                    } else {
+                        Toast.makeText(getApplicationContext(), "your location is \nlat:" + gps.getLatitude() + "\nlong:" + gps.getLongitude(), Toast.LENGTH_SHORT).show();
+                        loc1.setLatitude(gps.getLatitude());
+                        loc1.setLongitude(gps.getLongitude());
+                    }
+                }
+                else
+                {
+                    gps.showSettingAlerts();
+                }
+            }
+        });
+
 
 
     }
