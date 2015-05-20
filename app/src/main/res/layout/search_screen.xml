@@ -1,0 +1,55 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MonitorActivity"
+    android:id="@+id/monitor">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="154dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Please make sure your bluetooth is on. "
+        android:id="@+id/textView11"
+        android:layout_weight="0.23"
+        android:textSize="30dp"
+        android:layout_marginTop="54dp"
+        android:layout_below="@+id/textView10"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="400px"
+        android:layout_height="200px"
+        android:text="Search for device"
+        android:id="@+id/button"
+        android:background="#ffad7c12"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:id="@+id/imageView2"
+        android:layout_marginTop="47dp"
+        android:src="@drawable/tridmill"
+        android:layout_below="@+id/button"
+        android:layout_alignLeft="@+id/button"
+        android:layout_alignStart="@+id/button" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Monitor Mode"
+        android:id="@+id/textView10"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="48dp" />
+
+
+</RelativeLayout>
+
+
+
