@@ -6,21 +6,17 @@
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".ReportActivity"
     android:background="#f1ffffff">
 
-    <TextView android:text="PVD" android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/textView" />
-
     <TextView
         android:layout_width="230dp"
         android:layout_height="80dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="The results are:"
+        android:text="Results"
         android:id="@+id/textView4"
-        android:layout_below="@+id/textView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="46dp"
         android:textColor="#fc0c0c0c"
-        android:textSize="25dp" />
+        android:textSize="25dp"
+        android:layout_above="@+id/imageView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -37,9 +33,10 @@
     android:layout_height="150dp"
     android:id="@+id/imageView"
     android:src="@drawable/graph"
-        android:layout_below="@+id/textView4"
-        android:layout_alignRight="@+id/textView4"
-        android:layout_alignEnd="@+id/textView4" />
+        android:layout_above="@+id/imageView2"
+        android:layout_alignRight="@+id/button7"
+        android:layout_alignEnd="@+id/button7"
+        android:layout_marginBottom="27dp" />
 
     <ImageView
         android:layout_width="220dp"
@@ -47,8 +44,7 @@
         android:id="@+id/imageView2"
         android:src="@drawable/tridmill"
         android:layout_above="@+id/button6"
-        android:layout_alignRight="@+id/button7"
-        android:layout_alignEnd="@+id/button7" />
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -57,7 +53,7 @@
         android:id="@+id/button7"
         android:background="#ff5a68ad"
         android:layout_alignTop="@+id/button6"
-        android:layout_alignRight="@+id/textView4"
-        android:layout_alignEnd="@+id/textView4" />
+        android:layout_alignRight="@+id/imageView2"
+        android:layout_alignEnd="@+id/imageView2" />
 
 </RelativeLayout>
