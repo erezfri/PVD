@@ -18,21 +18,23 @@
         android:layout_width="300px"
         android:layout_height="150px"
         android:text="Monitor"
-        android:id="@+id/button"
+        android:id="@+id/monitorButton"
         android:background="#ffad2336"
         android:layout_below="@+id/textView11"
-        android:layout_alignLeft="@+id/button2"
-        android:layout_alignStart="@+id/button2" />
+        android:layout_alignLeft="@+id/sensorButton"
+        android:layout_alignStart="@+id/sensorButton"
+        android:onClick="onMonitorClick"/>
 
     <Button
         android:layout_width="300px"
         android:layout_height="150px"
         android:text="Sensor"
-        android:id="@+id/button2"
+        android:id="@+id/sensorButton"
         android:layout_marginTop="46dp"
         android:background="#ff2f4eff"
-        android:layout_below="@+id/button"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/monitorButton"
+        android:layout_centerHorizontal="true"
+        android:onClick="onSensorClick"/>
 
 
 

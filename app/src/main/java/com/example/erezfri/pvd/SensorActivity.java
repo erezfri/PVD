@@ -1,8 +1,5 @@
 package com.example.erezfri.pvd;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -10,10 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class MainActivity extends ActionBarActivity {
+public class SensorActivity extends ActionBarActivity {
 
     private TextView tempTextView; //Temporary TextView
     private Button tempBtn; //Temporary Button
@@ -26,7 +20,7 @@ public class MainActivity extends ActionBarActivity {
     private boolean stopped = false;
     private Runnable startTimer;
 
-    public MainActivity() {
+    public SensorActivity() {
         startTimer = new Runnable() {
             public void run() {
                 elapsedTime = System.currentTimeMillis() - startTime;
@@ -39,7 +33,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.sensor_screen);
     }
         public void startClick(View view){
             showStopButton();
