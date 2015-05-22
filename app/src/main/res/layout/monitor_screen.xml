@@ -17,7 +17,8 @@
         android:layout_marginTop="27dp"
         android:layout_below="@+id/textView10"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/searchButton" />
 
     <Button
         android:layout_width="400px"
@@ -26,18 +27,17 @@
         android:id="@+id/searchButton"
         android:background="#ffad7c12"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
         android:onClick="onSearchButtonClick"/>
 
-    <ImageView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:id="@+id/imageView2"
-        android:layout_marginTop="47dp"
-        android:src="@drawable/tridmill"
+    <LinearLayout
+        android:id="@+id/camera_preview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal"
         android:layout_below="@+id/searchButton"
-        android:layout_alignLeft="@+id/searchButton"
-        android:layout_alignStart="@+id/searchButton" />
+        android:layout_toLeftOf="@+id/bluetoothList"
+        android:layout_toStartOf="@+id/bluetoothList" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -53,8 +53,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/bluetoothList"
-        android:layout_below="@+id/searchButton"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/textView11"
+        android:layout_toRightOf="@+id/searchButton"
+        android:layout_toEndOf="@+id/searchButton"
+        android:layout_above="@+id/imageView2" />
 
 
 </RelativeLayout>
