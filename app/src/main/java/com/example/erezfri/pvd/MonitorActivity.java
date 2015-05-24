@@ -18,14 +18,15 @@ public class MonitorActivity extends ActionBarActivity {
     private BluetoothAdapter myBluetoothAdapter;
 
     @Override
-    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.monitor_screen);
 
+        // take an instance of BluetoothAdapter - Bluetooth radio
         myBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
     }
 
-    // take an instance of BluetoothAdapter - Bluetooth radio
+
 
 
 
@@ -37,10 +38,10 @@ public class MonitorActivity extends ActionBarActivity {
             Toast.makeText(getApplicationContext(), "Bluetooth turned on",
                     Toast.LENGTH_LONG).show();
         }
-
           Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
           startActivity(intent);
     }
+
     final BroadcastReceiver bReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -48,9 +49,6 @@ public class MonitorActivity extends ActionBarActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                // add the name and the MAC address of the object to the arrayAdapter
-                //BTArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-               // BTArrayAdapter.notifyDataSetChanged();
             }
         }
     };

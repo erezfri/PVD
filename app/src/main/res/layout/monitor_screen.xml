@@ -15,7 +15,8 @@
         android:onClick="onSearchButtonClick"
         android:clickable="true"
         android:layout_below="@+id/textView10"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:visibility="visible" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -26,21 +27,14 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="90dp"
-        android:id="@+id/bluetoothList"
-        android:layout_below="@+id/searchButton"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
     <TextureView
         android:layout_width="wrap_content"
         android:layout_height="320dp"
         android:id="@+id/textureView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/bluetoothList" />
+        android:layout_below="@+id/searchButton"
+        android:layout_alignParentBottom="true" />
 
 
 </RelativeLayout>
