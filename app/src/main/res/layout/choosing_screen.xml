@@ -12,14 +12,14 @@
         android:text="Please choose the device purpose:"
         android:id="@+id/textView11"
         android:layout_weight="0.23"
-        android:textSize="40dp" />
+        android:textSize="26dp" />
 
     <Button
         android:layout_width="300px"
         android:layout_height="150px"
         android:text="Monitor"
         android:id="@+id/monitorButton"
-        android:background="#ffad2336"
+        android:background="#ff7bad27"
         android:layout_below="@+id/textView11"
         android:layout_alignLeft="@+id/sensorButton"
         android:layout_alignStart="@+id/sensorButton"
