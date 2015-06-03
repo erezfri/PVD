@@ -2,6 +2,7 @@ package com.example.erezfri.pvd;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,13 +10,25 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.UUID;
+
 public class MonitorActivity extends ActionBarActivity {
 
+    private static final String UUID_SERIAL_PORT_PROFILE
+            = "00001101-0000-1000-8000-00805F9B34FB";
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter myBluetoothAdapter;
+    private BluetoothSocket mSocket = null;
+    private BufferedReader mBufferedReader = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -49,10 +62,18 @@ public class MonitorActivity extends ActionBarActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                try{//new for read data from BT
+                    openDeviceConnection(device);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                //end  for read data from BT
+
             }
-            //start new
+            //start new code for changing the BT status
             IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
             registerReceiver(bReceiver, filter);
+
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
                         BluetoothAdapter.ERROR);
@@ -78,6 +99,42 @@ public class MonitorActivity extends ActionBarActivity {
             //end new
         }
     };
+
+    //new code for data reading
+    private void openDeviceConnection(BluetoothDevice aDevice)
+            throws IOException {
+        InputStream aStream = null;
+        InputStreamReader aReader = null;
+        try {
+            mSocket = aDevice
+                    .createRfcommSocketToServiceRecord( getSerialPortUUID() );
+            mSocket.connect();
+            aStream = mSocket.getInputStream();
+            aReader = new InputStreamReader( aStream );
+            mBufferedReader = new BufferedReader( aReader );
+        } catch ( IOException e ) {
+            //"Could not connect to device"
+            close( mBufferedReader );
+            close( aReader );
+            close( aStream );
+            close( mSocket );
+            throw e;
+        }
+    }
+
+    private void close(Closeable aConnectedObject) {
+        if ( aConnectedObject == null ) return;
+        try {
+            aConnectedObject.close();
+        } catch ( IOException e ) {
+        }
+        aConnectedObject = null;
+    }
+
+    private UUID getSerialPortUUID() {
+        return UUID.fromString( UUID_SERIAL_PORT_PROFILE );
+    }
+    //end new code for data reading
 
     @Override
     protected void onDestroy() {
