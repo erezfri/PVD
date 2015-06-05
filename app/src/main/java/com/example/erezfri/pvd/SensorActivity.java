@@ -1,13 +1,17 @@
 package com.example.erezfri.pvd;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SensorActivity extends ActionBarActivity {
 
@@ -19,6 +23,9 @@ public class SensorActivity extends ActionBarActivity {
     private long secs,mins,hrs,msecs;
     private boolean stopped = false;
     private Runnable startTimer;
+
+    private BluetoothAdapter mBluetoothAdapter = null;
+    private static final int REQUEST_ENABLE_BT = 1;
 
     public SensorActivity() {
         startTimer = new Runnable() {
@@ -37,7 +44,28 @@ public class SensorActivity extends ActionBarActivity {
         Button stopButton = (Button)findViewById(R.id.stopButton);
         stopButton.setVisibility(View.GONE);
 
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // If the adapter is null, then Bluetooth is not supported
+        if (mBluetoothAdapter == null) {
+            Toast.makeText(getApplicationContext(), "Bluetooth is not available", Toast.LENGTH_LONG).show();
+        }
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        // If BT is not on, request that it be enabled.
+        // setupChat() will then be called during onActivityResult
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
+            Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+            startActivity(intent);
+        }
+
+        Toast.makeText(getApplicationContext(), "Waiting for monitor connection", Toast.LENGTH_LONG).show();
+        }
+
         public void startClick(View view){
             showStopButton();
         if(stopped){
@@ -61,8 +89,8 @@ public class SensorActivity extends ActionBarActivity {
             (findViewById(R.id.stopButton)).setVisibility(View.VISIBLE);
         }
         private void hideStopButton(){
-            ((Button)findViewById(R.id.startButton)).setVisibility(View.VISIBLE);
-            ((Button)findViewById(R.id.stopButton)).setVisibility(View.INVISIBLE);
+            (findViewById(R.id.startButton)).setVisibility(View.VISIBLE);
+            (findViewById(R.id.stopButton)).setVisibility(View.INVISIBLE);
         }
 
         private void updateTimer (float time){
