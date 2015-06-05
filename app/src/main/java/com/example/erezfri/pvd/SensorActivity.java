@@ -1,5 +1,7 @@
 package com.example.erezfri.pvd;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
@@ -9,8 +11,6 @@ import android.widget.TextView;
 
 public class SensorActivity extends ActionBarActivity {
 
-    private TextView tempTextView; //Temporary TextView
-    private Button tempBtn; //Temporary Button
     private Handler mHandler = new Handler();
     private long startTime;
     private long elapsedTime;
@@ -34,6 +34,9 @@ public class SensorActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sensor_screen);
+        Button stopButton = (Button)findViewById(R.id.stopButton);
+        stopButton.setVisibility(View.GONE);
+
     }
         public void startClick(View view){
             showStopButton();
@@ -54,12 +57,12 @@ public class SensorActivity extends ActionBarActivity {
 
 
         private void showStopButton(){
-            ((Button)findViewById(R.id.startButton)).setVisibility(View.GONE);
-            ((Button)findViewById(R.id.stopButton)).setVisibility(View.VISIBLE);
+            (findViewById(R.id.startButton)).setVisibility(View.INVISIBLE);
+            (findViewById(R.id.stopButton)).setVisibility(View.VISIBLE);
         }
         private void hideStopButton(){
             ((Button)findViewById(R.id.startButton)).setVisibility(View.VISIBLE);
-            ((Button)findViewById(R.id.stopButton)).setVisibility(View.GONE);
+            ((Button)findViewById(R.id.stopButton)).setVisibility(View.INVISIBLE);
         }
 
         private void updateTimer (float time){
@@ -104,6 +107,22 @@ public class SensorActivity extends ActionBarActivity {
              /* Setting the timer text to the elapsed time */
             ((TextView)findViewById(R.id.counterText)).setText(hours + ":" + minutes + ":" + seconds);
           //  ((TextView)findViewById(R.id.timerMs)).setText("." + milliseconds);
+        }
+
+        public void aboutClick(View view){
+            new AlertDialog.Builder(this)
+                    .setTitle("About Walking Pattern Detector")
+                    .setMessage("This application is research designed to identify walking patterns .\n" +
+                            "The app was developed by Technion STEM lab.")
+                    .setPositiveButton(android.R.string.ok, null).create().show();
+        }
+
+    public void helpClick(View view) {
+        new AlertDialog.Builder(this)
+                .setTitle("Help")
+                .setMessage("You are now in the sensor screen, please make sure you are connected to a monitor device")
+                    .setPositiveButton(android.R.string.ok, null).create().show();
+
         }
 
 }

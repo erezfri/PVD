@@ -10,16 +10,11 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.UUID;
+
 
 public class MonitorActivity extends ActionBarActivity {
 
@@ -36,7 +31,9 @@ public class MonitorActivity extends ActionBarActivity {
         setContentView(R.layout.monitor_screen);
 
         // take an instance of BluetoothAdapter - Bluetooth radio
-        myBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
+        if (myBluetoothAdapter==null){
+            myBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
+        }
         if (myBluetoothAdapter == null) {
             // Device does not support Bluetooth
             Toast.makeText(getApplicationContext(), "Device does not support Bluetooth",
@@ -55,20 +52,13 @@ public class MonitorActivity extends ActionBarActivity {
           startActivity(intent);
     }
 
-    final BroadcastReceiver bReceiver = new BroadcastReceiver() {
+    BroadcastReceiver bReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             // When discovery finds a device
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Get the BluetoothDevice object from the Intent
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                try{//new for read data from BT
-                    openDeviceConnection(device);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                //end  for read data from BT
-
             }
             //start new code for changing the BT status
             IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -99,48 +89,5 @@ public class MonitorActivity extends ActionBarActivity {
             //end new
         }
     };
-
-    //new code for data reading
-    private void openDeviceConnection(BluetoothDevice aDevice)
-            throws IOException {
-        InputStream aStream = null;
-        InputStreamReader aReader = null;
-        try {
-            mSocket = aDevice
-                    .createRfcommSocketToServiceRecord( getSerialPortUUID() );
-            mSocket.connect();
-            aStream = mSocket.getInputStream();
-            aReader = new InputStreamReader( aStream );
-            mBufferedReader = new BufferedReader( aReader );
-        } catch ( IOException e ) {
-            //"Could not connect to device"
-            close( mBufferedReader );
-            close( aReader );
-            close( aStream );
-            close( mSocket );
-            throw e;
-        }
-    }
-
-    private void close(Closeable aConnectedObject) {
-        if ( aConnectedObject == null ) return;
-        try {
-            aConnectedObject.close();
-        } catch ( IOException e ) {
-        }
-        aConnectedObject = null;
-    }
-
-    private UUID getSerialPortUUID() {
-        return UUID.fromString( UUID_SERIAL_PORT_PROFILE );
-    }
-    //end new code for data reading
-
-    @Override
-    protected void onDestroy() {
-        // TODO Auto-generated method stub
-        super.onDestroy();
-        unregisterReceiver(bReceiver);
-    }
 
 }
