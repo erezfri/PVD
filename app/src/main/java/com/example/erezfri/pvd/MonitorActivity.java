@@ -116,7 +116,7 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
 
         Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
         mTextureView.setLayoutParams(new FrameLayout.LayoutParams(
-                previewSize.width/3, previewSize.height/3, Gravity.BOTTOM));
+                previewSize.width/2, previewSize.height/3, Gravity.BOTTOM));
 
         try {
             mCamera.setPreviewTexture(surface);

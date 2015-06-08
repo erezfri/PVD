@@ -35,14 +35,14 @@
 
         <FrameLayout
             android:layout_alignParentBottom="true"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-            <TextureView
-                android:layout_width="wrap_content"
-                android:layout_height="370dp"
-                android:id="@+id/textureView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+                <TextureView
+                    android:layout_width="match_parent"
+                    android:layout_height="390dp"
+                    android:id="@+id/textureView"
 
-                android:layout_gravity="bottom" />
+                    android:layout_gravity="bottom" />
         </FrameLayout>
 
 
