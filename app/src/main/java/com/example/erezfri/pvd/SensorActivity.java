@@ -63,7 +63,7 @@ public class SensorActivity extends ActionBarActivity {
             startActivity(intent);
         }
 
-        Toast.makeText(getApplicationContext(), "Waiting for monitor connection", Toast.LENGTH_LONG).show();
+        //Toast.makeText(getApplicationContext(), "Waiting for monitor connection", Toast.LENGTH_LONG).show();
         }
 
         public void startClick(View view){
@@ -131,7 +131,7 @@ public class SensorActivity extends ActionBarActivity {
             if(milliseconds.length()<=1){
                 milliseconds = "00";
             }
-            milliseconds = milliseconds.substring(milliseconds.length()-3, milliseconds.length()-2);
+           // milliseconds = milliseconds.substring(milliseconds.length()-3, milliseconds.length()-2);
              /* Setting the timer text to the elapsed time */
             ((TextView)findViewById(R.id.counterText)).setText(hours + ":" + minutes + ":" + seconds);
           //  ((TextView)findViewById(R.id.timerMs)).setText("." + milliseconds);

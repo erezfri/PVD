@@ -27,17 +27,23 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
-    <TextureView
-        android:layout_width="wrap_content"
-        android:layout_height="320dp"
-        android:id="@+id/textureView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/searchButton"
-        android:layout_alignParentBottom="true" />
+
+
+
+
+
+
+        <FrameLayout
+            android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+            <TextureView
+                android:layout_width="wrap_content"
+                android:layout_height="370dp"
+                android:id="@+id/textureView"
+
+                android:layout_gravity="bottom" />
+        </FrameLayout>
 
 
 </RelativeLayout>
-
-
-

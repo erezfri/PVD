@@ -7,16 +7,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.SurfaceTexture;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Gravity;
+import android.view.TextureView;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 
 
-public class MonitorActivity extends ActionBarActivity {
+public class MonitorActivity extends ActionBarActivity implements TextureView.SurfaceTextureListener {
 
     private static final String UUID_SERIAL_PORT_PROFILE
             = "00001101-0000-1000-8000-00805F9B34FB";
@@ -24,6 +30,11 @@ public class MonitorActivity extends ActionBarActivity {
     private BluetoothAdapter myBluetoothAdapter;
     private BluetoothSocket mSocket = null;
     private BufferedReader mBufferedReader = null;
+
+    //start for camera preview
+    private Camera mCamera;
+    private TextureView mTextureView;
+    //end for camera preview
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,7 +50,14 @@ public class MonitorActivity extends ActionBarActivity {
             Toast.makeText(getApplicationContext(), "Device does not support Bluetooth",
                     Toast.LENGTH_SHORT).show();
         }
+
+        //start for camera preview
+        mTextureView = (TextureView)findViewById(R.id.textureView) ;
+        mTextureView.setSurfaceTextureListener(this);
+        //setContentView(mTextureView);
+        //end for camera preview
     }
+
       public void onSearchButtonClick(View view) {
         if (!myBluetoothAdapter.isEnabled()) {
             Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -89,5 +107,40 @@ public class MonitorActivity extends ActionBarActivity {
             //end new
         }
     };
+
+
+    //start for camera preview
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        mCamera = Camera.open();
+
+        Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
+        mTextureView.setLayoutParams(new FrameLayout.LayoutParams(
+                previewSize.width/3, previewSize.height/3, Gravity.BOTTOM));
+
+        try {
+            mCamera.setPreviewTexture(surface);
+        } catch (IOException t) {
+        }
+
+        mCamera.startPreview();
+
+    }
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        // Ignored, the Camera does all the work for us
+    }
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        mCamera.stopPreview();
+        mCamera.release();
+        return true;
+    }
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        // Update your view here!
+    }
+    //end for camera preview
+
 
 }
