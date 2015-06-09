@@ -10,8 +10,11 @@ import android.content.IntentFilter;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.TextureView;
 import android.view.View;
@@ -20,6 +23,7 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Set;
 
 
 public class MonitorActivity extends ActionBarActivity implements TextureView.SurfaceTextureListener {
@@ -28,6 +32,14 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
             = "00001101-0000-1000-8000-00805F9B34FB";
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter myBluetoothAdapter;
+
+    // Member object for the bluetooth services
+    private BluetoothService mBTService = null;
+    // Connection mechanism (side)
+    private int mConnectSide = BluetoothService.CLIENT;
+    // Name of the connected device
+    private String mConnectedDeviceName = null;
+
     private BluetoothSocket mSocket = null;
     private BufferedReader mBufferedReader = null;
 
@@ -68,45 +80,15 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
         }
           Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
           startActivity(intent);
+
+          //Bluetooth is now enabled, so set up bluetoothServie
+          if (mBTService==null) {
+              mBTService = new BluetoothService(this, mHandler, mConnectSide);
+          }
+
+          connectDevice();
     }
 
-    BroadcastReceiver bReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            // When discovery finds a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                // Get the BluetoothDevice object from the Intent
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            }
-            //start new code for changing the BT status
-            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            registerReceiver(bReceiver, filter);
-
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                        BluetoothAdapter.ERROR);
-                switch (state) {
-                    case BluetoothAdapter.STATE_OFF:
-                        Toast.makeText(getApplicationContext(), "Bluetooth off",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_OFF:
-                        Toast.makeText(getApplicationContext(), "Turning Bluetooth off...",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case BluetoothAdapter.STATE_ON:
-                        Toast.makeText(getApplicationContext(), "Bluetooth on",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_ON:
-                        Toast.makeText(getApplicationContext(), "Turning Bluetooth on...",
-                                Toast.LENGTH_LONG).show();
-                        break;
-                }
-            }
-            //end new
-        }
-    };
 
 
     //start for camera preview
@@ -142,5 +124,76 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
     }
     //end for camera preview
 
+    private void sendMessage(String message) {
+        // Check that we're actually connected before trying anything
+        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
+            Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check that there's actually something to send
+        if (message.length() > 0) {
+            // Get the message bytes and tell the BluetoothChatService to write
+            byte[] send = message.getBytes();
+            mBTService.write(send);
+
+        }
+    }
+
+    private void connectDevice() {
+        Set<BluetoothDevice> pairedDevices = myBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                try {   //try to connect to one of the paired devices... problem if more than 1, should be able to choose from list
+                    mBTService.connect(device);
+                    if (mBTService.getState() == 3) //STATE_CONNECTED
+                    {
+                        break;
+                    }
+                }
+                catch (Exception e){}
+            }
+        }
+    }
+
+
+    // The Handler that gets information back from the BluetoothService
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case BluetoothService.MESSAGE_STATE_CHANGE:
+                    switch (msg.arg1) {
+                        case BluetoothService.STATE_CONNECTED:
+                            break;
+                        case BluetoothService.STATE_CONNECTING:
+                            break;
+                        case BluetoothService.STATE_LISTEN:
+                        case BluetoothService.STATE_NONE:
+                            break;
+                    }
+                    break;
+                case BluetoothService.MESSAGE_WRITE:
+                    //byte[] writeBuf = (byte[]) msg.obj;
+                    // construct a string from the buffer
+                    // String writeMessage = new String(writeBuf);
+                    break;
+                case BluetoothService.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    Toast.makeText(getApplicationContext(), readBuf.toString(), Toast.LENGTH_SHORT).show();
+                    break;
+                case BluetoothService.MESSAGE_DEVICE_NAME:
+                    // save the connected device's name
+                    mConnectedDeviceName = msg.getData().getString(BluetoothService.DEVICE_NAME);
+                    Toast.makeText(getApplicationContext(), "Connected to "
+                            + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                    break;
+                case BluetoothService.MESSAGE_TOAST:
+                    Toast.makeText(getApplicationContext(), msg.getData().getString(BluetoothService.TOAST),
+                            Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
 
 }

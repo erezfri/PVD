@@ -2,16 +2,23 @@ package com.example.erezfri.pvd;
 
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.sql.Date;
+import java.sql.Time;
+import java.util.Set;
 
 public class SensorActivity extends ActionBarActivity {
 
@@ -23,6 +30,12 @@ public class SensorActivity extends ActionBarActivity {
     private long secs,mins,hrs,msecs;
     private boolean stopped = false;
     private Runnable startTimer;
+
+    private BluetoothService mBTService = null;
+    // Connection mechanism (side)
+    private int mConnectSide = BluetoothService.SERVER;
+    // Name of the connected device
+    private String mConnectedDeviceName = null;
 
     private BluetoothAdapter mBluetoothAdapter = null;
     private static final int REQUEST_ENABLE_BT = 1;
@@ -63,6 +76,11 @@ public class SensorActivity extends ActionBarActivity {
             startActivity(intent);
         }
 
+        if (mBTService==null) {
+            mBTService = new BluetoothService(this, bluetoothHandler, mConnectSide);
+        }
+        connectDevice();
+
         //Toast.makeText(getApplicationContext(), "Waiting for monitor connection", Toast.LENGTH_LONG).show();
         }
 
@@ -75,7 +93,12 @@ public class SensorActivity extends ActionBarActivity {
         }
         mHandler.removeCallbacks(startTimer);
         mHandler.postDelayed(startTimer, 0);
+        try{
+            sendMessage("hi " + System.currentTimeMillis());
+            }
+        catch (Exception e){}
         }
+
         public void stopClick(View view){
             hideStopButton();
             mHandler.removeCallbacks(startTimer);
@@ -152,6 +175,83 @@ public class SensorActivity extends ActionBarActivity {
                     .setPositiveButton(android.R.string.ok, null).create().show();
 
         }
+
+    private void sendMessage(String message) {
+        // Check that we're actually connected before trying anything
+        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
+            Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show();
+            connectDevice();
+            return;
+        }
+
+        // Check that there's actually something to send
+        if (message.length() > 0) {
+            // Get the message bytes and tell the BluetoothChatService to write
+            byte[] send = message.getBytes();
+            mBTService.write(send);
+
+        }
+    }
+
+    // The Handler that gets information back from the BluetoothService
+    private final Handler bluetoothHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case BluetoothService.MESSAGE_STATE_CHANGE:
+                    switch (msg.arg1) {
+                        case BluetoothService.STATE_CONNECTED:
+                            break;
+                        case BluetoothService.STATE_CONNECTING:
+                            break;
+                        case BluetoothService.STATE_LISTEN:
+                        case BluetoothService.STATE_NONE:
+                            break;
+                    }
+                    break;
+                case BluetoothService.MESSAGE_WRITE:
+                    //byte[] writeBuf = (byte[]) msg.obj;
+                    // construct a string from the buffer
+                    // String writeMessage = new String(writeBuf);
+                    break;
+                case BluetoothService.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    // construct a string from the valid bytes in the buffer
+                    String readMessage = new String(readBuf, 0, msg.arg1);
+                    //TextView view = (TextView) findViewById(R.id.multi_sensor_text_view);
+                    //view.setText(readMessage);
+                        Toast.makeText(getApplicationContext(), readMessage, Toast.LENGTH_SHORT).show();
+                    break;
+                case BluetoothService.MESSAGE_DEVICE_NAME:
+                    // save the connected device's name
+                    mConnectedDeviceName = msg.getData().getString(BluetoothService.DEVICE_NAME);
+                    Toast.makeText(getApplicationContext(), "Connected to "
+                            + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                    break;
+                case BluetoothService.MESSAGE_TOAST:
+                    Toast.makeText(getApplicationContext(), msg.getData().getString(BluetoothService.TOAST),
+                            Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+
+    };
+
+    private void connectDevice() {
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                try {   //try to connect to one of the paired devices... problem if more than 1, should be able to choose from list
+                    mBTService.connect(device);
+                    if (mBTService.getState() == 3) //STATE_CONNECTED
+                    {
+                        break;
+                    }
+                }
+                catch (Exception e){}
+            }
+        }
+    }
 
 }
 
