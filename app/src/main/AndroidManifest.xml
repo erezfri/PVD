@@ -13,10 +13,12 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+
         android:theme="@style/AppTheme" >
 
         <activity
             android:name=".ChooseActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,11 +29,13 @@
         </activity>
 
         <activity
+            android:screenOrientation="portrait"
             android:name=".SensorActivity"
             android:label="@string/app_name" >
 
         </activity>
         <activity
+            android:screenOrientation="portrait"
             android:name=".MonitorActivity"
             android:label="@string/app_name" >
 
