@@ -22,6 +22,7 @@ import java.util.Set;
 
 public class SensorActivity extends ActionBarActivity {
 
+    //timer
     private Handler mHandler = new Handler();
     private long startTime;
     private long elapsedTime;
@@ -31,6 +32,8 @@ public class SensorActivity extends ActionBarActivity {
     private boolean stopped = false;
     private Runnable startTimer;
 
+
+    //bluetooth
     private BluetoothService mBTService = null;
     // Connection mechanism (side)
     private int mConnectSide = BluetoothService.SERVER;
@@ -57,6 +60,7 @@ public class SensorActivity extends ActionBarActivity {
         Button stopButton = (Button)findViewById(R.id.stopButton);
         stopButton.setVisibility(View.GONE);
 
+        //bluetooth
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // If the adapter is null, then Bluetooth is not supported
@@ -68,7 +72,6 @@ public class SensorActivity extends ActionBarActivity {
     public void onStart() {
         super.onStart();
         // If BT is not on, request that it be enabled.
-        // setupChat() will then be called during onActivityResult
         if (!mBluetoothAdapter.isEnabled()) {
             Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
@@ -237,6 +240,8 @@ public class SensorActivity extends ActionBarActivity {
 
     };
 
+
+    //bluetooth connection
     private void connectDevice() {
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {

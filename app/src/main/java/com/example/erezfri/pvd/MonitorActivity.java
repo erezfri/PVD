@@ -1,5 +1,6 @@
 package com.example.erezfri.pvd;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -31,7 +32,9 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
     private static final String UUID_SERIAL_PORT_PROFILE
             = "00001101-0000-1000-8000-00805F9B34FB";
     private static final int REQUEST_ENABLE_BT = 1;
+    private static final int REQUEST_CONNECT_DEVICE=2;
     private BluetoothAdapter myBluetoothAdapter;
+    private Boolean BluetoothCond = false;
 
     // Member object for the bluetooth services
     private BluetoothService mBTService = null;
@@ -74,19 +77,15 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
         if (!myBluetoothAdapter.isEnabled()) {
             Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
-
-            Toast.makeText(getApplicationContext(), "Bluetooth turned on",
-                    Toast.LENGTH_LONG).show();
+//
+//            Toast.makeText(getApplicationContext(), "Bluetooth turned on",
+//                    Toast.LENGTH_LONG).show();
+        }else {
+            BluetoothCond=true;
+            Intent serverIntent = new Intent(this, DeviceListActivity.class);
+            startActivityForResult(serverIntent, REQUEST_ENABLE_BT);
         }
-          Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-          startActivity(intent);
 
-          //Bluetooth is now enabled, so set up bluetoothServie
-          if (mBTService==null) {
-              mBTService = new BluetoothService(this, mHandler, mConnectSide);
-          }
-
-          connectDevice();
     }
 
 
@@ -98,7 +97,7 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
 
         Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
         mTextureView.setLayoutParams(new FrameLayout.LayoutParams(
-                previewSize.width/2, previewSize.height/3, Gravity.BOTTOM));
+                previewSize.width/2, previewSize.height/2, Gravity.BOTTOM));
 
         try {
             mCamera.setPreviewTexture(surface);
@@ -106,6 +105,7 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
         }
 
         mCamera.startPreview();
+        mCamera.setDisplayOrientation(90);
 
     }
     @Override
@@ -124,6 +124,8 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
     }
     //end for camera preview
 
+
+    //bluetooth
     private void sendMessage(String message) {
         // Check that we're actually connected before trying anything
         if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
@@ -140,19 +142,49 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
         }
     }
 
-    private void connectDevice() {
-        Set<BluetoothDevice> pairedDevices = myBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                try {   //try to connect to one of the paired devices... problem if more than 1, should be able to choose from list
-                    mBTService.connect(device);
-                    if (mBTService.getState() == 3) //STATE_CONNECTED
-                    {
-                        break;
-                    }
+    //bluetooth connection
+    private void connectDevice(Intent data) {
+        // Get the device MAC address
+        String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        // Get the BluetoothDevice object
+        BluetoothDevice device = myBluetoothAdapter.getRemoteDevice(address);
+        // Attempt to connect to the device
+        mBTService.connect(device);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        switch (requestCode){
+            case REQUEST_CONNECT_DEVICE:
+                // When DeviceListActivity returns with a device to connect
+                if(resultCode== Activity.RESULT_OK){
+                    connectDevice(data);
                 }
-                catch (Exception e){}
-            }
+                break;
+            case REQUEST_ENABLE_BT:
+
+                // When the request for enabling bluetooth returns
+                if (resultCode == Activity.RESULT_OK){
+                        //connectDevice(getIntent());
+                    if (!BluetoothCond) {
+                        Intent serverIntent = new Intent(this, DeviceListActivity.class);
+                        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+                    }
+                    if (mBTService==null) {
+                        mBTService = new BluetoothService(this, mHandler, mConnectSide);
+                    }
+                    //Bluetooth is now enabled, so set up bluetoothServie
+                    //mBTService = new BluetoothService(this, mHandler,mConnectSide);
+                }
+                else{
+                    //User didn't enable bluetooth or error was occurred
+                   // Log.d(TAG, "BT not enabled");
+                    Toast.makeText(this,"Bluetooth was not enabled", Toast.LENGTH_SHORT).show();
+                    finish();
+
+                }
+
         }
     }
 
