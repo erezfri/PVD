@@ -89,17 +89,17 @@ public class SensorActivity extends ActionBarActivity {
 
         public void startClick(View view){
             showStopButton();
-        if(stopped){
-            startTime = System.currentTimeMillis() - elapsedTime;
-        }
-        else{ startTime = System.currentTimeMillis();
-        }
-        mHandler.removeCallbacks(startTimer);
-        mHandler.postDelayed(startTimer, 0);
-        try{
-            sendMessage("hi " + System.currentTimeMillis());
+            if(stopped){
+                startTime = System.currentTimeMillis() - elapsedTime;
             }
-        catch (Exception e){}
+            else{ startTime = System.currentTimeMillis();
+            }
+            mHandler.removeCallbacks(startTimer);
+            mHandler.postDelayed(startTimer, 0);
+            try{
+                sendMessage("TAKEPICTURE");
+            }
+            catch (Exception e){}
         }
 
         public void stopClick(View view){

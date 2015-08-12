@@ -477,6 +477,7 @@ public class BluetoothService {
                 Log.e(TAG, "close() of connect socket failed", e);
             }
         }
+
     }
     
     

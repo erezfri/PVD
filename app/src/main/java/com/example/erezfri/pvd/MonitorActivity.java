@@ -10,9 +10,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -20,10 +22,12 @@ import android.view.Gravity;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Set;
 
 
@@ -35,6 +39,8 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
     private static final int REQUEST_CONNECT_DEVICE=2;
     private BluetoothAdapter myBluetoothAdapter;
     private Boolean BluetoothCond = false;
+
+    static final int REQUEST_VIDEO_CAPTURE = 1;
 
     // Member object for the bluetooth services
     private BluetoothService mBTService = null;
@@ -50,6 +56,11 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
     private Camera mCamera;
     private TextureView mTextureView;
     //end for camera preview
+
+    // the scope graph customized view object
+    private PlotDynamic mGraph;
+    private ArrayList<byte[]> Packets;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,13 +94,31 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
         }else {
             BluetoothCond=true;
             Intent serverIntent = new Intent(this, DeviceListActivity.class);
-            startActivityForResult(serverIntent, REQUEST_ENABLE_BT);
+            startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
         }
+
 
     }
 
 
+    public void Plot(){
+        //Initialize view variables
+        mGraph = new PlotDynamic(this,1,1);
+        mGraph.setTitle("Test");
+        mGraph.setColor("123".split(""), PlotDynamic.Colorpart.plots);
+        mGraph.setColor("1".split(""), PlotDynamic.Colorpart.backgroud);
+        mGraph.setColor("2".split(""), PlotDynamic.Colorpart.grid);
 
+
+        //bulid view
+        LinearLayout Scope = new LinearLayout(this);
+        Scope.setOrientation(LinearLayout.VERTICAL);
+        Scope.addView(mGraph);
+        setContentView(Scope);
+
+        Packets = new ArrayList<byte[]>();
+        return;
+    }
     //start for camera preview
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -97,7 +126,7 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
 
         Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
         mTextureView.setLayoutParams(new FrameLayout.LayoutParams(
-                previewSize.width/2, previewSize.height/2, Gravity.BOTTOM));
+                previewSize.width / 2, previewSize.height / 2, Gravity.BOTTOM));
 
         try {
             mCamera.setPreviewTexture(surface);
@@ -159,6 +188,9 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
             case REQUEST_CONNECT_DEVICE:
                 // When DeviceListActivity returns with a device to connect
                 if(resultCode== Activity.RESULT_OK){
+                    if (mBTService==null) {
+                        mBTService = new BluetoothService(this, mHandler, mConnectSide);
+                    }
                     connectDevice(data);
                 }
                 break;
@@ -186,6 +218,14 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
                 }
 
         }
+
+    }
+
+    private void takeVideo() {
+        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+        }
     }
 
 
@@ -212,7 +252,13 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
                     break;
                 case BluetoothService.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
-                    Toast.makeText(getApplicationContext(), readBuf.toString(), Toast.LENGTH_SHORT).show();
+                    String msgString = new String(readBuf);
+                    if (msgString.startsWith("TAKEPICTURE"))
+                    {
+                        //Plot();
+
+                    }
+                    Toast.makeText(getApplicationContext(), msgString, Toast.LENGTH_SHORT).show();
                     break;
                 case BluetoothService.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
@@ -227,5 +273,6 @@ public class MonitorActivity extends ActionBarActivity implements TextureView.Su
             }
         }
     };
+
 
 }
