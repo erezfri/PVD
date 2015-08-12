@@ -386,10 +386,7 @@ public class MonitorActivity extends ActionBarActivity{
         }
     }
 
-    public void videoFunc(){
-        Intent intent = new Intent(this, AndroidVideoCaptureExample.class);
-        startActivity(intent);
-    }
+
 
 
     // The Handler that gets information back from the BluetoothService
@@ -418,7 +415,7 @@ public class MonitorActivity extends ActionBarActivity{
                     String msgString = new String(readBuf);
                     if (msgString.startsWith("TAKEPICTURE"))
                     {
-                        videoFunc();
+                       // videoFunc();
                     }
                     Toast.makeText(getApplicationContext(), msgString, Toast.LENGTH_SHORT).show();
                     break;
