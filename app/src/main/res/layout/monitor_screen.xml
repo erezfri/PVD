@@ -56,7 +56,16 @@
             android:layout_width="fill_parent"
             android:layout_height="353dp"
             android:orientation="horizontal"
-            android:layout_gravity="bottom"/>
+            android:layout_gravity="bottom">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="RECORDING..."
+                android:id="@+id/recordingStatus"
+                android:visibility="invisible"/>
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/buttonsLayout"

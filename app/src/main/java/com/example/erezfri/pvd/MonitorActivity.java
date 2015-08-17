@@ -15,6 +15,7 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -28,9 +29,11 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
@@ -214,9 +217,13 @@ public class MonitorActivity extends ActionBarActivity{
                 Toast.makeText(MonitorActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
                 recording = false;
             } else {
-                if (!prepareMediaRecorder()) {
-                    Toast.makeText(MonitorActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
-                    finish();
+                try {
+                    if (!prepareMediaRecorder()) {
+                        Toast.makeText(MonitorActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
                 // work on UiThread for better performance
                 runOnUiThread(new Runnable() {
@@ -243,7 +250,7 @@ public class MonitorActivity extends ActionBarActivity{
             mCamera.lock(); // lock camera for later use
         }
     }
-    private boolean prepareMediaRecorder() {
+    private boolean prepareMediaRecorder() throws IOException {
 
         mediaRecorder = new MediaRecorder();
 
@@ -252,10 +259,18 @@ public class MonitorActivity extends ActionBarActivity{
 
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-
+      //  mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
+       // mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+       // mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/MyFolder/";
+        File dir = new File(path);
+        if(!dir.exists())
+            dir.mkdirs();
+        String myFile = path + "filename" + ".mp4";
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
+        mediaRecorder.setOutputFile(myFile);
+    //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
 
-        mediaRecorder.setOutputFile("/sdcard/myvideo.mp4");
         mediaRecorder.setMaxDuration(600000); // Set max duration 60 sec.//TODO think about it
         mediaRecorder.setMaxFileSize(50000000); // Set max file size 50M//TODO think about it
 
@@ -348,13 +363,12 @@ public class MonitorActivity extends ActionBarActivity{
 
     }
 
-    private void takeVideo() {
-        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-        if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
-        }
-    }
-
+//    private void takeVideo() {
+//        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+//        if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
+//            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+//        }
+//    }
 
 
 
@@ -384,6 +398,15 @@ public class MonitorActivity extends ActionBarActivity{
                     String msgString = new String(readBuf);
                     if (msgString.startsWith("TAKEPICTURE"))
                     {
+                        Button b = (Button)findViewById(R.id.button_capture);
+                        TextView t = (TextView)findViewById(R.id.recordingStatus);
+                        if (t.getVisibility()==View.INVISIBLE) {
+                            t.setVisibility(View.VISIBLE);
+                        }
+                        else{
+                            t.setVisibility(View.INVISIBLE);
+                        }
+                        b.callOnClick();
                        // videoFunc();
                     }
                     Toast.makeText(getApplicationContext(), msgString, Toast.LENGTH_SHORT).show();

@@ -107,6 +107,10 @@ public class SensorActivity extends ActionBarActivity {
             mHandler.removeCallbacks(startTimer);
             ((TextView)findViewById(R.id.counterText)).setText("00:00:00");
             stopped = false;
+            try{
+                sendMessage("TAKEPICTURE");
+            }
+            catch (Exception e){}
         }
 
 
