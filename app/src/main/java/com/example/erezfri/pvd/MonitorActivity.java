@@ -154,41 +154,9 @@ public class MonitorActivity extends ActionBarActivity{
         Packets = new ArrayList<byte[]>();
         return;
     }
+
+
     //start for camera preview
-//    @Override
-//    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-//        mCamera = Camera.open();
-//
-//        Camera.Size previewSize = mCamera.getParameters().getPreviewSize();
-//        mTextureView.setLayoutParams(new FrameLayout.LayoutParams(
-//                previewSize.width / 2, previewSize.height / 2, Gravity.BOTTOM));
-//
-//        try {
-//            mCamera.setPreviewTexture(surface);
-//        } catch (IOException t) {
-//        }
-//
-//        mCamera.startPreview();
-//        mCamera.setDisplayOrientation(90);
-//
-//    }
-//    @Override
-//    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-//        // Ignored, the Camera does all the work for us
-//    }
-//    @Override
-//    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-//        mCamera.stopPreview();
-//        mCamera.release();
-//        return true;
-//    }
-//    @Override
-//    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-//        // Update your view here!
-//    }
-//    //end for camera preview
-
-
     public void onResume() {
         super.onResume();
         if (!hasCamera(myContext)) {
@@ -288,8 +256,8 @@ public class MonitorActivity extends ActionBarActivity{
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
 
         mediaRecorder.setOutputFile("/sdcard/myvideo.mp4");
-        mediaRecorder.setMaxDuration(600000); // Set max duration 60 sec.
-        mediaRecorder.setMaxFileSize(50000000); // Set max file size 50M
+        mediaRecorder.setMaxDuration(600000); // Set max duration 60 sec.//TODO think about it
+        mediaRecorder.setMaxFileSize(50000000); // Set max file size 50M//TODO think about it
 
         try {
             mediaRecorder.prepare();
@@ -310,6 +278,7 @@ public class MonitorActivity extends ActionBarActivity{
             mCamera = null;
         }
     }
+    //end for camera preview
 
 
     //bluetooth
