@@ -103,14 +103,15 @@ public class SensorActivity extends ActionBarActivity {
         }
 
         public void stopClick(View view){
+            try{
+                sendMessage("TAKEPICTURE");
+            }catch (Exception e){}
             hideStopButton();
             mHandler.removeCallbacks(startTimer);
             ((TextView)findViewById(R.id.counterText)).setText("00:00:00");
             stopped = false;
-            try{
-                sendMessage("TAKEPICTURE");
-            }
-            catch (Exception e){}
+
+
         }
 
 

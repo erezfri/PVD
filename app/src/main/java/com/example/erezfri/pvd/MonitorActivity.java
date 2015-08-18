@@ -363,13 +363,6 @@ public class MonitorActivity extends ActionBarActivity{
 
     }
 
-//    private void takeVideo() {
-//        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-//        if (takeVideoIntent.resolveActivity(getPackageManager()) != null) {
-//            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
-//        }
-//    }
-
 
 
     // The Handler that gets information back from the BluetoothService
@@ -400,16 +393,17 @@ public class MonitorActivity extends ActionBarActivity{
                     {
                         Button b = (Button)findViewById(R.id.button_capture);
                         TextView t = (TextView)findViewById(R.id.recordingStatus);
-                        if (t.getVisibility()==View.INVISIBLE) {
-                            t.setVisibility(View.VISIBLE);
-                        }
-                        else{
-                            t.setVisibility(View.INVISIBLE);
-                        }
                         b.callOnClick();
-                       // videoFunc();
+                        if (recording) {
+                            t.setVisibility(View.VISIBLE);//RECORDING...
+                            Toast.makeText(getApplicationContext(),"The video started", Toast.LENGTH_SHORT).show();
+                        }
+                        else{//recording
+                            t.setVisibility(View.INVISIBLE);
+                            Toast.makeText(getApplicationContext(),"The video stopped", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                    Toast.makeText(getApplicationContext(), msgString, Toast.LENGTH_SHORT).show();
+
                     break;
                 case BluetoothService.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
