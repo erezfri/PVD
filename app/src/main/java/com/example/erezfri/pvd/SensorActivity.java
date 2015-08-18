@@ -1,26 +1,39 @@
 package com.example.erezfri.pvd;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.sql.Date;
 import java.sql.Time;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-public class SensorActivity extends ActionBarActivity {
+public class SensorActivity extends ActionBarActivity implements SensorEventListener {
 
     //timer
     private Handler mHandler = new Handler();
@@ -43,6 +56,7 @@ public class SensorActivity extends ActionBarActivity {
     private BluetoothAdapter mBluetoothAdapter = null;
     private static final int REQUEST_ENABLE_BT = 1;
 
+    //timer
     public SensorActivity() {
         startTimer = new Runnable() {
             public void run() {
@@ -52,6 +66,68 @@ public class SensorActivity extends ActionBarActivity {
             }
         };
     }
+
+
+
+    //Sensor Experiment info variables
+    public int[] mSenorTypeGroup;
+    public boolean mTime;
+    public int[] mAxes;
+    public boolean[] mModify;
+    public int mSensorNum;//=mSenorTypeGroup.length;
+    private boolean mDefaultSensor;
+
+    //sensor
+    private ArrayList<Sensor> mSensorGroup = new ArrayList<Sensor>(mSensorNum);
+    private boolean mAcquisitionFlag = false;
+    private SensorManager mSensorManager;
+    public static int sensorDelay=SensorManager.SENSOR_DELAY_GAME;//default value
+
+    //Packet variables
+    public int mTotSampNum;
+    public int[] mSensorMaxSamp; // if sensors has different freq
+    public int mSampByteNum;
+    public ByteBuffer mPacket;   // for each sensor sampnum(int)|time(long)| value(int)
+    public int[] mSampCount;
+    public int[] mSampCountPos; //the position of the counter of the sensor's samples number
+    public int[] mPosition;     // the index(dynamic) of the next sample related to a specific sensor
+    public int mCurSensor;      //used for fast ploting at multi-sensor
+    public float mCurVal,mCurTime; //  for fast ploting at multi-sensor
+    private boolean initPos=true; // for once initilization of mSampCountPos
+    public byte[] message;
+    public long startTime2;
+    //public boolean waitToStart;
+    public enum ControlMessage {start};
+    public int startMessage=-1;
+
+    public static boolean D_MULTI_SENSOR_SCOPE_VIEW;
+    public static boolean D_MULTI_SENSOR_FILE;
+    public static boolean D_CONTROLLER_FILE;
+
+    //GRAPH
+    //public String[] mAxesName;
+    public int[] mGraphControlInd,mGraphMultiInd; // -1 mean not to plot
+    public String[] mGraphGroupColor,mGraphMultiColor,mGraphControlColor,mGraphBackColor,mGraphGridColor;
+    public String[] mNamesGroup,mGraphMultiName,mGraphControlName;
+    public String mTitle;
+    public int mGraphMultiNum=0,mGraphControlNum=0;
+    public int mGraphMultiCount=0;
+    public int mGraphMultiMax;
+    public boolean mGraphMultiPhase;
+    public static final boolean GRIDON=true;
+    public boolean mGraphGrid=GRIDON;
+    public float mGraphTimeInterval;
+
+    //VIEW,FILES
+    private PlotDynamic mGraph;
+    private Activity mActivity=this;
+    private ArrayList<byte[]> Packets;
+
+    //FILES
+    public String[] mFileNameMulti,mFileNameControl;
+    public ArrayList<File> mFileGroup;
+    public ArrayList<FileWriter> mFileWriterGroup;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +143,13 @@ public class SensorActivity extends ActionBarActivity {
         if (mBluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(), "Bluetooth is not available", Toast.LENGTH_LONG).show();
         }
+
+        //Get SensorManager and sensors
+        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        mSensorGroup = getSensors(mSensorManager);
     }
+
+
     @Override
     public void onStart() {
         super.onStart();
@@ -77,6 +159,7 @@ public class SensorActivity extends ActionBarActivity {
             startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
             Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
             startActivity(intent);
+
         }
 
         if (mBTService==null) {
@@ -86,6 +169,24 @@ public class SensorActivity extends ActionBarActivity {
 
         //Toast.makeText(getApplicationContext(), "Waiting for monitor connection", Toast.LENGTH_LONG).show();
         }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Performing this check in onResume() covers the case in which BT was
+        // not enabled during onStart(), so we were paused to enable it...
+        // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
+        if (mBTService != null) {
+            // Only if the state is STATE_NONE, do we know that we haven't started already
+            if (mBTService.getState() == BluetoothService.STATE_NONE) {
+                // Start the Bluetooth chat services
+                mBTService.set();
+            }
+        }
+        if (mAcquisitionFlag) {
+            registerSensorListener();
+        }
+
+    }
 
         public void startClick(View view){
             showStopButton();
@@ -97,14 +198,46 @@ public class SensorActivity extends ActionBarActivity {
             mHandler.removeCallbacks(startTimer);
             mHandler.postDelayed(startTimer, 0);
             try{
-                sendMessage("TAKEPICTURE");
+                sendMessage("TAKEPICTURE");//TODO something else "start video"
+                mSensorManager.unregisterListener((SensorEventListener)mActivity);
+                Packets = new ArrayList<byte[]>();
+                SetStart();
+                mAcquisitionFlag = true;
+                registerSensorListener();
+                mBTService.write(getControlMessage(ControlMessage.start));
+                //sendMessagea(mExperimentManager.startMessage);
+
+                if (D_MULTI_SENSOR_SCOPE_VIEW){
+                    mGraph = new PlotDynamic(mActivity,mGraphMultiNum,mGraphTimeInterval);
+                    mGraph.setTitle(mTitle);
+                    mGraph.setColor(mGraphMultiColor,PlotDynamic.Colorpart.plots);
+                    mGraph.setColor(mGraphBackColor,PlotDynamic.Colorpart.backgroud);
+                    mGraph.setColor(mGraphGridColor, PlotDynamic.Colorpart.grid);
+                    mGraph.Legend(mGraphMultiName);
+                    mGraph.setGrid(mGraphGrid);
+
+                    //bulid view
+                    LinearLayout Scope = new LinearLayout(mActivity);
+                    Scope.setOrientation(LinearLayout.VERTICAL);
+                    Scope.addView(mGraph);
+                    setContentView(Scope);
+                }
             }
             catch (Exception e){}
+
         }
 
         public void stopClick(View view){
             try{
                 sendMessage("TAKEPICTURE");
+                mSensorManager.unregisterListener((SensorEventListener)mActivity);
+                if(D_MULTI_SENSOR_FILE){
+                    Toast.makeText(mActivity,"Saving files and Leaving pendulum experiment" ,Toast.LENGTH_LONG).show();
+                    CreateFile(mFileNameMulti, mActivity);
+                    Packets2File(Packets);
+                }
+                //finish();
+
             }catch (Exception e){}
             hideStopButton();
             mHandler.removeCallbacks(startTimer);
@@ -263,5 +396,354 @@ public class SensorActivity extends ActionBarActivity {
         }
     }
 
-}
 
+
+    /**
+     * getSensors gets the multi-sensor specific sensor.
+     * the sensor type is default or Google.
+     */
+    public ArrayList<Sensor> getSensors(SensorManager sensorManager){
+        ArrayList<Sensor> sensorGroup = new ArrayList<Sensor>(mSensorNum);
+
+        //take the default sensors - HW
+        if (mDefaultSensor){
+            //Get SensorManager and sensors
+            for (int i=0;i<mSensorNum;i++){
+                sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[i]));
+            }
+        }
+        else{
+            //take Android open source sensors
+            for (int i=0;i<mSensorNum;i++){
+                List<Sensor> sersorList = sensorManager.getSensorList(mSenorTypeGroup[i]);
+                for (Sensor sensor:sersorList){
+                    if(sensor.getVendor().contains("Google Inc.")){
+                        sensorGroup.add(sensor);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return sensorGroup;
+    }
+
+
+    private void registerSensorListener(){
+        // register to SensorEventListener
+        for (int i=0;i<mSensorNum;i++){
+            mSensorManager.registerListener(this, mSensorGroup.get(i), sensorDelay);
+        }
+
+    }
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // Check that we're actually connected before trying anything
+        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
+            return;
+        }
+
+        // Create the message bytes and send via BluetoothChatService
+        // Send message and plot at the SAME PHASE
+        boolean tosendFlag = PacketAdd(event);
+        if(tosendFlag) {
+            mBTService.write(message);
+            Packets.add(message);
+        }
+
+        if ((D_MULTI_SENSOR_SCOPE_VIEW)){
+            boolean toplotDifferFlag = GraphAddData(mGraph);
+            //same phase
+            if(mGraphMultiPhase && tosendFlag) mGraph.invalidate();
+                //different phase
+            else if (toplotDifferFlag)
+                mGraph.invalidate();
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+    //==============
+    //PACKET SERVICE
+    //==============
+    /**
+     * Put a specific sensor's sample at the packet.
+     * used by the multi-sensor.
+     * */
+    public boolean PacketAdd(SensorEvent event){
+        int i;
+        // get sensor index
+        for(i=0;i<mSensorNum;i++){
+            if(event.sensor.getType()==mSenorTypeGroup[i]){
+                mCurSensor=i;
+                // get value to put at the Packet buffer
+                mCurVal=event.values[mAxes[i]];
+                if(mModify[i]){
+                    mCurVal=ModifySensorVal(mSenorTypeGroup[i],mCurVal);
+                }
+                // put sample at the Packet buffer and update buffer.
+                mPacket.position(mPosition[i]);
+                if(mTime) {
+                    //mPacket.putLong(event.timestamp);
+                    if(startTime2==Long.MIN_VALUE){
+                        startTime2=event.timestamp;
+                    }
+                    mCurTime = (float)(1e-9*(event.timestamp-startTime2));
+                    mPacket.putFloat(mCurTime);
+                }
+                mPacket.putFloat(mCurVal);
+                mPosition[i]=mPosition[i]+mSampByteNum;
+                mSampCount[i]++;
+
+                // if the sub-buffer is full then sending packet
+                if (mSampCount[i]==mSensorMaxSamp[i]){
+                    for(int j=0;j<mSensorNum;j++){
+                        mPacket.position(mSampCountPos[j]);
+                        mPacket.putInt(mSampCount[j]);
+                    }
+                    message=mPacket.array();
+                    //allocate new buffer - otherwise data will be override and won't be available for files
+                    if (D_MULTI_SENSOR_FILE) mPacket=ByteBuffer.allocate(4*mSensorNum+mTotSampNum*mSampByteNum);
+                    SetPosition();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private float ModifySensorVal(int SensorType,float val){
+        float modval=val;
+        if(SensorType==Sensor.TYPE_GRAVITY){
+            modval = (float) (4*Math.asin(val/9.8));
+        }
+        return modval;
+    }
+
+
+    /**
+     * Set packet position variables:
+     * mPosition is the index(dynamic) of the next sample related to a specific sensor
+     * mSampCountPos is the position of the counter of the sensor's samples number
+     * */
+    private void SetPosition(){
+        mPosition=new int[mSensorNum];
+        mSampCountPos=new int[mSensorNum];
+        mSampCount= new int[mSensorNum];
+        for(int i=0;i<mSensorNum;i++){
+            mPosition[i]=4*(i+1)+i*mSensorMaxSamp[i]*mSampByteNum; //first 4, second 4+(SensorTotSampNum*SampByteNum)+4
+        }
+        if (initPos){
+            for(int i=0;i<mSensorNum;i++){
+                mSampCountPos[i]=i*(4+mSensorMaxSamp[i]*mSampByteNum); //first 0, second (4+(SensorTotSampNum*SampByteNum))
+            }
+        }
+    }
+
+    /**
+     * Sends a message.
+     * @param message  A string of text to send.
+     */
+    private void sendMessagea(String message) { //
+        // Check that we're actually connected before trying anything
+        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
+            Toast.makeText(this,"Not connected to the bluetooth", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check that there's actually something to send
+        if (message.length() > 0) {
+            // Get the message bytes and tell the BluetoothChatService to write
+            byte[] send = message.getBytes();
+            mBTService.write(send);
+
+        }
+    }
+    /**
+     * Set the start time of the experiment:
+     * set the first event time to be zero and set new packet.
+     */
+    public void SetStart(){
+        //set time
+        startTime2=Long.MIN_VALUE;
+        // initilize packet
+        mPacket=ByteBuffer.allocate(4*mSensorNum+mTotSampNum*mSampByteNum);
+        SetPosition();
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode){
+            case REQUEST_ENABLE_BT:
+                // When the request for enabling bluetooth returns
+                if (resultCode == Activity.RESULT_OK){
+                    //Bluetooth is now enabled, so set up bluetoothServie
+                    mBTService = new BluetoothService(this, mHandler,mConnectSide);
+                }
+                else{
+                    //User didn't enable bluetooth or error was occurred
+                    Toast.makeText(this,"Bluetooth was not enabled", Toast.LENGTH_SHORT).show();
+                    finish();
+
+                }
+        }
+    }
+
+
+
+    /**
+     * Add a specific sensor's sample to the Multi-Sensor component
+     * return true only if the sample was added to graph
+     * */
+    public boolean GraphAddData(PlotDynamic Graph){
+
+        if(mGraphMultiInd[mCurSensor]!=-1){
+            Graph.addData(mCurTime,mCurVal,mGraphMultiInd[mCurSensor]);
+            mGraphMultiCount++;
+            if (mGraphMultiCount == mGraphMultiMax) {
+                mGraphMultiCount=0;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //=================
+    // CONTROL MESSAGES
+    //=================
+    /**
+     * 	The 'control messages' used to transfer control messages.
+     *  i.e:
+     *  'start' is used when the controller commits start (after the experiment was begun before)
+     *          it's used to distinguish between the packets arrived before the multi-senor get the start command and after it got it.
+     *          to do that the multi-sensor transmits a start message before it send the new session packets.
+     *
+     *  *getControlMessage - used for the creation of the control message
+     *  *CheckMessageType - used to check if the current message is from the type 'messagetype'
+     */
+    public byte[] getControlMessage(ControlMessage messagetype){
+        byte[] message = new byte[4];
+
+        switch (messagetype){
+            case start:
+                message=ByteBuffer.allocate(4).putInt(startMessage).array();
+        }
+        return message;
+
+    }
+
+    public boolean CheckMessageType(byte[] message,ControlMessage messagetype){
+        boolean Check = false;
+
+        switch (messagetype){
+            case start:
+                if(ByteBuffer.wrap(message).getInt()==startMessage)
+                    Check=true;
+                else
+                    Check=false;
+        }
+        return Check;
+
+    }
+
+
+
+    //=====
+    //FILES
+    //=====
+    /**
+     * Creates samples files - each sensor has its own file
+     * (used by the controller and may be used by the multi-sensor)
+     */
+    public void CreateFile(String[] filenames,Activity activity){
+        //if(D_SAMPLE2FILE){
+        String state = Environment.getExternalStorageState();
+        if (!(state.equals(Environment.MEDIA_MOUNTED))) {
+            Toast.makeText(activity ,"Media is not mounted" ,Toast.LENGTH_SHORT).show();
+            activity.finish();
+        }
+        mFileGroup =new ArrayList<File>();
+        mFileWriterGroup= new ArrayList<FileWriter>();
+
+        //create files and it's writers
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        path.mkdirs();
+        try{
+            for(int i=0;i<mSensorNum;i++){
+                File file = new File(path, filenames[i]);
+                mFileGroup.add(file);
+                if (file.exists()){
+                    file.delete();
+                }
+                file.createNewFile();
+                mFileGroup.add(file);
+                mFileWriterGroup.add(new FileWriter(file));
+            }
+            //put file tables titles
+            for (int i=0;i<mSensorNum;i++){
+                FileWriter filewriter = mFileWriterGroup.get(i);
+                if(mTime){
+                    filewriter.append("time[sec]");
+                    filewriter.append(',');
+                }
+                filewriter.append(mNamesGroup[i]);
+                filewriter.append('\n');
+            }
+        }
+        catch(IOException e)
+        {
+            //Toast.makeText(activity, e.getMessage() ,Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Writes the pull of packets to the files.
+     * (used by the controller and may be used by the multi-sensor)
+     */
+    public void Packets2File(ArrayList<byte[]> Packets){
+        for (byte[] p: Packets){
+            ByteBuffer Packet = ByteBuffer.wrap(p);//for each packet
+            //  at the packet - for each sensor i
+
+            for(int i=0;i<mSensorNum;i++){
+                //get appropriate filewriter
+                FileWriter filewriter = mFileWriterGroup.get(i);
+                //set position to the start of the sensor i message
+                Packet.position(mSampCountPos[i]);
+
+                //write to files
+                int samplesNum=Packet.getInt();
+                try{
+                    for (int n=0;n<samplesNum;n++){
+                        if(mTime)  {
+                            String time = Float.toString(Packet.getFloat());
+                            filewriter.append(time);
+                            filewriter.append(',');
+                        }
+                        filewriter.append(Float.toString(Packet.getFloat()));
+                        filewriter.append('\n');
+                    }
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        //close files
+        for(int i=0;i<mSensorNum;i++){
+            FileWriter filewriter = mFileWriterGroup.get(i);
+            try{
+                filewriter.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+}
