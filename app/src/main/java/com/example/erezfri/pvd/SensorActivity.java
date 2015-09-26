@@ -42,8 +42,31 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     private final int REFRESH_RATE = 100;
     private String hours,minutes,seconds,milliseconds;
     private long secs,mins,hrs,msecs;
-    private boolean stopped = false;
+    private boolean stopped = true;
     private Runnable startTimer;
+
+    //=========
+    //CONSTANTS
+    //=========
+    public static final int CONTROLLER=0;
+    public static final int MULTI_SENSOR=1;
+
+    //sensor variables
+    public static final boolean WITHTIME = true;
+    public static final boolean WITHOUTTIME = false;
+
+    public static final int axesX =0;
+    public static final int axesY =1;
+    public static final int axesZ =2;
+
+    public static final boolean MODIFY = true;
+    public static final boolean TRANSPERENT = false;
+
+    //graph variables
+    public static final boolean TOPLOT = true;
+    public static final boolean NOTTOPLOT = false;
+    public static final boolean GRIDON=true;
+    public static final boolean GRIDOFF=false;
 
 
     //bluetooth
@@ -65,6 +88,32 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                 mHandler.postDelayed(this,REFRESH_RATE);
             }
         };
+
+        //Sensor Experiment info variables
+        mSenorTypeGroup=new int[]{Sensor.TYPE_GRAVITY,Sensor.TYPE_GYROSCOPE,Sensor.TYPE_LINEAR_ACCELERATION};
+        mDefaultSensor=false;
+        mAxes = new int[]{axesZ,axesX,axesZ};
+        mNamesGroup= new String[]{"4*Angle[rad]","Gyroscope(x)[rad/s]","Linear Accelerometer(z)[m/s^2]"};
+        mModify = new boolean[]{MODIFY,TRANSPERENT,TRANSPERENT};
+        mTime=WITHTIME;
+        sensorDelay=SensorManager.SENSOR_DELAY_FASTEST;
+
+        //Packet variables
+        mTotSampNum=100;
+
+        //======================
+//SYS MANAGER VARIABLES
+//======================
+//Sensor Experiment info variables
+        mSensorNum=mSenorTypeGroup.length;
+//Packet variables
+        mSampByteNum=mTime ? 4+4:4; //if time change to 4 change GraphAddData val
+
+        mSensorMaxSamp = new int[mSensorNum]; for(int i=0;i<mSensorNum;i++){mSensorMaxSamp[i]
+                =mTotSampNum/mSensorNum;}
+//mSensorMaxSamp = new int[]{25,50,25};
+        SetPosition();
+        mGraphMultiMax=(int)(0.5*mGraphMultiNum*mTotSampNum/mSensorNum);
     }
 
 
@@ -106,6 +155,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
     //GRAPH
     //public String[] mAxesName;
+
     public int[] mGraphControlInd,mGraphMultiInd; // -1 mean not to plot
     public String[] mGraphGroupColor,mGraphMultiColor,mGraphControlColor,mGraphBackColor,mGraphGridColor;
     public String[] mNamesGroup,mGraphMultiName,mGraphControlName;
@@ -114,7 +164,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     public int mGraphMultiCount=0;
     public int mGraphMultiMax;
     public boolean mGraphMultiPhase;
-    public static final boolean GRIDON=true;
     public boolean mGraphGrid=GRIDON;
     public float mGraphTimeInterval;
 
@@ -198,7 +247,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
             mHandler.removeCallbacks(startTimer);
             mHandler.postDelayed(startTimer, 0);
             try{
-                sendMessage("TAKEPICTURE");//TODO something else "start video"
+                sendMessage("START_SENSORNUM=" + mSensorNum + "@");//TODO something else "start video"
                 mSensorManager.unregisterListener((SensorEventListener)mActivity);
                 Packets = new ArrayList<byte[]>();
                 SetStart();
@@ -207,6 +256,9 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                 mBTService.write(getControlMessage(ControlMessage.start));
                 //sendMessagea(mExperimentManager.startMessage);
 
+
+                //for the GRAPH
+                /*
                 if (D_MULTI_SENSOR_SCOPE_VIEW){
                     mGraph = new PlotDynamic(mActivity,mGraphMultiNum,mGraphTimeInterval);
                     mGraph.setTitle(mTitle);
@@ -222,6 +274,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                     Scope.addView(mGraph);
                     setContentView(Scope);
                 }
+                */
             }
             catch (Exception e){}
 
@@ -229,7 +282,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
         public void stopClick(View view){
             try{
-                sendMessage("TAKEPICTURE");
+                sendMessage("STOP");
                 mSensorManager.unregisterListener((SensorEventListener)mActivity);
                 if(D_MULTI_SENSOR_FILE){
                     Toast.makeText(mActivity,"Saving files and Leaving pendulum experiment" ,Toast.LENGTH_LONG).show();
@@ -415,13 +468,19 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         else{
             //take Android open source sensors
             for (int i=0;i<mSensorNum;i++){
-                List<Sensor> sersorList = sensorManager.getSensorList(mSenorTypeGroup[i]);
-                for (Sensor sensor:sersorList){
+                List<Sensor> sensorList = sensorManager.getSensorList(mSenorTypeGroup[i]);
+                for (Sensor sensor:sensorList){
                     if(sensor.getVendor().contains("Google Inc.")){
                         sensorGroup.add(sensor);
                         break;
                     }
                 }
+            }
+        }
+        if (sensorGroup.size()==0)
+        {
+            for (int i=0;i<mSensorNum;i++){
+                sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[i]));
             }
         }
 
@@ -447,10 +506,16 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         // Send message and plot at the SAME PHASE
         boolean tosendFlag = PacketAdd(event);
         if(tosendFlag) {
+            for (int i = 0; i<mSensorNum; i++) {
+                String SampCountPosMessage = "SampCountPos[" + i + "]=" + mSampCountPos[i] + "@";
+                mBTService.write(SampCountPosMessage.getBytes());
+            }
             mBTService.write(message);
             Packets.add(message);
         }
 
+       //GRAPH
+        /*
         if ((D_MULTI_SENSOR_SCOPE_VIEW)){
             boolean toplotDifferFlag = GraphAddData(mGraph);
             //same phase
@@ -459,6 +524,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
             else if (toplotDifferFlag)
                 mGraph.invalidate();
         }
+        */
     }
 
     @Override
@@ -598,6 +664,8 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
      * Add a specific sensor's sample to the Multi-Sensor component
      * return true only if the sample was added to graph
      * */
+    //GRAPH
+    /*
     public boolean GraphAddData(PlotDynamic Graph){
 
         if(mGraphMultiInd[mCurSensor]!=-1){
@@ -610,6 +678,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         }
         return false;
     }
+    */
 
     //=================
     // CONTROL MESSAGES
@@ -689,7 +758,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                     filewriter.append("time[sec]");
                     filewriter.append(',');
                 }
-                filewriter.append(mNamesGroup[i]);
+                filewriter.append("TEST~~~~~~");//mNamesGroup[i]);
                 filewriter.append('\n');
             }
         }

@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
@@ -35,7 +36,9 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Set;
 
 
@@ -66,8 +69,13 @@ public class MonitorActivity extends ActionBarActivity{
     //end for camera preview
 
     // the scope graph customized view object
+    //GRAPH
     private PlotDynamic mGraph;
     private ArrayList<byte[]> Packets;
+    public int[] mGraphControlInd = new int[]{0,2,1};//graph view index ‐ may determine the front graph
+    public int[] mSampCountPos; //the position of the counter of the sensor's samples number
+    private boolean mSampCountPosFlag;
+    private LinearLayout graphPreview;
 
     //for the camera
     private Context myContext;
@@ -76,6 +84,8 @@ public class MonitorActivity extends ActionBarActivity{
     private LinearLayout cameraPreview;
     private Button capture;
     private MediaRecorder mediaRecorder;
+    private int mSensorNum = 0;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -138,25 +148,28 @@ public class MonitorActivity extends ActionBarActivity{
 
     }
 
+//GRAPH
 
     public void Plot(){
         //Initialize view variables
         mGraph = new PlotDynamic(this,1,1);
         mGraph.setTitle("Test");
-        mGraph.setColor("123".split(""), PlotDynamic.Colorpart.plots);
-        mGraph.setColor("1".split(""), PlotDynamic.Colorpart.backgroud);
-        mGraph.setColor("2".split(""), PlotDynamic.Colorpart.grid);
+        String[] mGraphGroupColor = new String[]{"#FF002060","#FFFF0000","#FF4A7EBB"};
+        String[] mGraphBackColor = new String[]{"#FFBCBCBC"};
+        String[] mGraphGridColor = new String[]{"#FFE0E0E0"};
+        mGraph.setColor(mGraphGroupColor, PlotDynamic.Colorpart.plots);
+        mGraph.setColor(mGraphBackColor, PlotDynamic.Colorpart.backgroud);
+        mGraph.setColor(mGraphGridColor, PlotDynamic.Colorpart.grid);
 
-
+        //TODO remove after stop
         //bulid view
-        LinearLayout Scope = new LinearLayout(this);
-        Scope.setOrientation(LinearLayout.VERTICAL);
-        Scope.addView(mGraph);
-        setContentView(Scope);
+        graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
+        graphPreview.addView(mGraph);
 
         Packets = new ArrayList<byte[]>();
         return;
     }
+
 
 
     //start for camera preview
@@ -187,9 +200,39 @@ public class MonitorActivity extends ActionBarActivity{
 
         capture = (Button) findViewById(R.id.button_capture);
         capture.setOnClickListener(captrureListener);
+    }
 
-       // switchCamera = (Button) findViewById(R.id.button_ChangeCamera);
-       // switchCamera.setOnClickListener(switchCameraListener);
+    public void handleStartStop() {
+        if (recording) {
+            // stop recording and release camera
+            mediaRecorder.stop(); // stop the recording
+            releaseMediaRecorder(); // release the MediaRecorder object
+            //Toast.makeText(MonitorActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
+            recording = false;
+        } else {
+            try {
+                if (!prepareMediaRecorder()) {
+                    Toast.makeText(MonitorActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // work on UiThread for better performance
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    // If there are stories, add them to the table
+
+                    try {
+                        mediaRecorder.start();
+                    } catch (final Exception ex) {
+                        // Log.i("---","Exception in thread");
+                    }
+                }
+            });
+
+            recording = true;
+        }
     }
     @Override
     protected void onPause() {
@@ -210,36 +253,7 @@ public class MonitorActivity extends ActionBarActivity{
     View.OnClickListener captrureListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (recording) {
-                // stop recording and release camera
-                mediaRecorder.stop(); // stop the recording
-                releaseMediaRecorder(); // release the MediaRecorder object
-                Toast.makeText(MonitorActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
-                recording = false;
-            } else {
-                try {
-                    if (!prepareMediaRecorder()) {
-                        Toast.makeText(MonitorActivity.this, "Fail in prepareMediaRecorder()!\n - Ended -", Toast.LENGTH_LONG).show();
-                        finish();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                // work on UiThread for better performance
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        // If there are stories, add them to the table
-
-                        try {
-                            mediaRecorder.start();
-                        } catch (final Exception ex) {
-                            // Log.i("---","Exception in thread");
-                        }
-                    }
-                });
-
-                recording = true;
-            }
+            handleStartStop();
         }
     };
     private void releaseMediaRecorder() {
@@ -266,14 +280,15 @@ public class MonitorActivity extends ActionBarActivity{
         File dir = new File(path);
         if(!dir.exists())
             dir.mkdirs();
-        String myFile = path + "filename" + ".mp4";
+        Calendar c = Calendar.getInstance();
+        String myFile = path + "filename" + c.getTime().toString() + ".mp4" ;   //TODO set date and time format
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
         mediaRecorder.setOutputFile(myFile);
     //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
 
         mediaRecorder.setMaxDuration(600000); // Set max duration 60 sec.//TODO think about it
         mediaRecorder.setMaxFileSize(50000000); // Set max file size 50M//TODO think about it
-
+        mediaRecorder.setOrientationHint(90);
         try {
             mediaRecorder.prepare();
         } catch (IllegalStateException e) {
@@ -389,19 +404,41 @@ public class MonitorActivity extends ActionBarActivity{
                 case BluetoothService.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
                     String msgString = new String(readBuf);
-                    if (msgString.startsWith("TAKEPICTURE"))
+                    if (msgString.startsWith("START"))
                     {
-                        Button b = (Button)findViewById(R.id.button_capture);
+
                         TextView t = (TextView)findViewById(R.id.recordingStatus);
-                        b.callOnClick();
-                        if (recording) {
-                            t.setVisibility(View.VISIBLE);//RECORDING...
-                            Toast.makeText(getApplicationContext(),"The video started", Toast.LENGTH_SHORT).show();
-                        }
-                        else{//recording
-                            t.setVisibility(View.INVISIBLE);
-                            Toast.makeText(getApplicationContext(),"The video stopped", Toast.LENGTH_SHORT).show();
-                        }
+                        handleStartStop();
+                        t.setVisibility(View.VISIBLE);//RECORDING...
+                        Toast.makeText(getApplicationContext(),"The video started", Toast.LENGTH_SHORT).show();
+                        int indexStart = msgString.indexOf("=") + 1;
+                        int indexEnd = msgString.indexOf("@");
+                        mSensorNum = Integer.parseInt(msgString.substring(indexStart, indexEnd));
+                        mSampCountPos=new int[mSensorNum];
+                        mSampCountPosFlag = false;
+                        Plot();
+
+                    }
+                    else if (msgString.startsWith("STOP")){
+                        TextView t = (TextView)findViewById(R.id.recordingStatus);
+                        handleStartStop();
+                        t.setVisibility(View.INVISIBLE);
+                        Toast.makeText(getApplicationContext(),"The video stopped", Toast.LENGTH_SHORT).show();
+                    }
+                    else if (msgString.startsWith("SampCountPos")) {
+
+                        int indexStartI = msgString.indexOf("[") + 1;
+                        int indexEndI = msgString.indexOf("]");
+                        int indexStartVal = msgString.indexOf("=") + 1;
+                        int indexEndVal = msgString.indexOf("@");
+                        mSampCountPos[Integer.parseInt(msgString.substring(indexStartI, indexEndI))] =
+                                Integer.parseInt(msgString.substring(indexStartVal, indexEndVal));
+                        mSampCountPosFlag = true;
+                    }
+                    else if (recording && mSampCountPosFlag){   //packets
+                        Packets.add(readBuf);
+                        GraphAddData(readBuf, mGraph);
+                        mGraph.invalidate();
                     }
 
                     break;
@@ -418,6 +455,28 @@ public class MonitorActivity extends ActionBarActivity{
             }
         }
     };
+
+    /**
+     * Add sensors' packets' samples to the controller graph object.
+     * @param PacketBuf - packet
+     * @param Graph - plotDynamic graph object
+     */
+    public void GraphAddData(byte[] PacketBuf,PlotDynamic Graph){
+        ByteBuffer Packet = ByteBuffer.wrap(PacketBuf);
+        // for each sensor i at the packet
+        // check if user asked to plot sensor's i data (if not continue to next)
+        for(int i=0;i<mSensorNum;i++){
+            //set position to the start of the sensor i message
+            Packet.position(mSampCountPos[i]);
+            //user ask to plot
+            if(mGraphControlInd[i]!=-1){
+                int samplesNum=Packet.getInt();
+                for (int j=0;j<samplesNum;j++){
+                    Graph.addData(Packet.getFloat(),Packet.getFloat(), mGraphControlInd[i]);
+                }
+            }
+        }
+    }
 
 
 }

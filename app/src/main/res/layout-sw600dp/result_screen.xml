@@ -1,0 +1,59 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".ReportActivity"
+    android:background="#f1ffffff">
+
+    <TextView
+        android:layout_width="230dp"
+        android:layout_height="80dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Results"
+        android:id="@+id/textView4"
+        android:textColor="#fc0c0c0c"
+        android:textSize="25dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/imageView"
+        android:layout_marginTop="65dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Exit"
+        android:id="@+id/button6"
+        android:background="#ff38ad33"
+        android:layout_below="@+id/imageView2"
+        android:layout_alignStart="@+id/imageView2"
+        android:layout_marginTop="73dp" />
+
+    <ImageView
+    android:layout_width="220dp"
+    android:layout_height="150dp"
+    android:id="@+id/imageView"
+    android:src="@drawable/graph"
+        android:layout_marginTop="154dp"
+        android:layout_below="@+id/textView4"
+        android:layout_alignStart="@+id/imageView2" />
+
+    <ImageView
+        android:layout_width="220dp"
+        android:layout_height="150dp"
+        android:id="@+id/imageView2"
+        android:src="@drawable/tridmill"
+        android:layout_below="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="88dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Export"
+        android:id="@+id/button7"
+        android:background="#ff5a68ad"
+        android:layout_alignTop="@+id/button6"
+        android:layout_alignRight="@+id/imageView2"
+        android:layout_alignEnd="@+id/imageView2" />
+
+</RelativeLayout>
