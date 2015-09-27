@@ -45,9 +45,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     private boolean stopped = true;
     private Runnable startTimer;
 
-    //=========
-    //CONSTANTS
-    //=========
     public static final int CONTROLLER=0;
     public static final int MULTI_SENSOR=1;
 
@@ -155,17 +152,10 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
     //GRAPH
     //public String[] mAxesName;
+    public String[] mNamesGroup;
+    public int mGraphMultiNum=0;
 
-    public int[] mGraphControlInd,mGraphMultiInd; // -1 mean not to plot
-    public String[] mGraphGroupColor,mGraphMultiColor,mGraphControlColor,mGraphBackColor,mGraphGridColor;
-    public String[] mNamesGroup,mGraphMultiName,mGraphControlName;
-    public String mTitle;
-    public int mGraphMultiNum=0,mGraphControlNum=0;
-    public int mGraphMultiCount=0;
     public int mGraphMultiMax;
-    public boolean mGraphMultiPhase;
-    public boolean mGraphGrid=GRIDON;
-    public float mGraphTimeInterval;
 
     //VIEW,FILES
     private PlotDynamic mGraph;
@@ -256,25 +246,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                 mBTService.write(getControlMessage(ControlMessage.start));
                 //sendMessagea(mExperimentManager.startMessage);
 
-
-                //for the GRAPH
-                /*
-                if (D_MULTI_SENSOR_SCOPE_VIEW){
-                    mGraph = new PlotDynamic(mActivity,mGraphMultiNum,mGraphTimeInterval);
-                    mGraph.setTitle(mTitle);
-                    mGraph.setColor(mGraphMultiColor,PlotDynamic.Colorpart.plots);
-                    mGraph.setColor(mGraphBackColor,PlotDynamic.Colorpart.backgroud);
-                    mGraph.setColor(mGraphGridColor, PlotDynamic.Colorpart.grid);
-                    mGraph.Legend(mGraphMultiName);
-                    mGraph.setGrid(mGraphGrid);
-
-                    //bulid view
-                    LinearLayout Scope = new LinearLayout(mActivity);
-                    Scope.setOrientation(LinearLayout.VERTICAL);
-                    Scope.addView(mGraph);
-                    setContentView(Scope);
-                }
-                */
             }
             catch (Exception e){}
 
@@ -508,10 +479,12 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         if(tosendFlag) {
             for (int i = 0; i<mSensorNum; i++) {
                 String SampCountPosMessage = "SampCountPos[" + i + "]=" + mSampCountPos[i] + "@";
-                mBTService.write(SampCountPosMessage.getBytes());
+                //mBTService.write(SampCountPosMessage.getBytes());
+                sendMessage(SampCountPosMessage);
             }
-            mBTService.write(message);
+            //mBTService.write(message);
             Packets.add(message);
+
         }
 
        //GRAPH
@@ -660,25 +633,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
 
 
-    /**
-     * Add a specific sensor's sample to the Multi-Sensor component
-     * return true only if the sample was added to graph
-     * */
-    //GRAPH
-    /*
-    public boolean GraphAddData(PlotDynamic Graph){
 
-        if(mGraphMultiInd[mCurSensor]!=-1){
-            Graph.addData(mCurTime,mCurVal,mGraphMultiInd[mCurSensor]);
-            mGraphMultiCount++;
-            if (mGraphMultiCount == mGraphMultiMax) {
-                mGraphMultiCount=0;
-                return true;
-            }
-        }
-        return false;
-    }
-    */
 
     //=================
     // CONTROL MESSAGES

@@ -4,31 +4,21 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
-import android.provider.MediaStore;
-import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,7 +29,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Set;
 
 
 public class MonitorActivity extends ActionBarActivity{
@@ -71,11 +60,16 @@ public class MonitorActivity extends ActionBarActivity{
     // the scope graph customized view object
     //GRAPH
     private PlotDynamic mGraph;
+    public int mGraphMultiCount=0;
     private ArrayList<byte[]> Packets;
-    public int[] mGraphControlInd = new int[]{0,2,1};//graph view index ‐ may determine the front graph
+    public int[] mGraphControlInd = new int[]{0,2,1}; //graph view index ‐ may determine the front graph
+    public int[] mGraphMultiInd= new int[]{-1,0,-1};
     public int[] mSampCountPos; //the position of the counter of the sensor's samples number
     private boolean mSampCountPosFlag;
     private LinearLayout graphPreview;
+    public int mCurSensor;      //used for fast ploting at multi-sensor
+    public float mCurVal,mCurTime; //  for fast ploting at multi-sensor
+    public int mGraphMultiMax;
 
     //for the camera
     private Context myContext;
@@ -85,6 +79,8 @@ public class MonitorActivity extends ActionBarActivity{
     private Button capture;
     private MediaRecorder mediaRecorder;
     private int mSensorNum = 0;
+
+    private boolean recordingStatus = false;
 
 
     @Override
@@ -165,6 +161,7 @@ public class MonitorActivity extends ActionBarActivity{
         //bulid view
         graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
         graphPreview.addView(mGraph);
+        graphPreview.setVisibility(View.VISIBLE);
 
         Packets = new ArrayList<byte[]>();
         return;
@@ -402,11 +399,12 @@ public class MonitorActivity extends ActionBarActivity{
                     // String writeMessage = new String(writeBuf);
                     break;
                 case BluetoothService.MESSAGE_READ:
+
                     byte[] readBuf = (byte[]) msg.obj;
                     String msgString = new String(readBuf);
                     if (msgString.startsWith("START"))
                     {
-
+                        recordingStatus = true;
                         TextView t = (TextView)findViewById(R.id.recordingStatus);
                         handleStartStop();
                         t.setVisibility(View.VISIBLE);//RECORDING...
@@ -420,12 +418,16 @@ public class MonitorActivity extends ActionBarActivity{
 
                     }
                     else if (msgString.startsWith("STOP")){
+                        recordingStatus = false;
                         TextView t = (TextView)findViewById(R.id.recordingStatus);
                         handleStartStop();
                         t.setVisibility(View.INVISIBLE);
                         Toast.makeText(getApplicationContext(),"The video stopped", Toast.LENGTH_SHORT).show();
+                        graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
+                        graphPreview.setVisibility(View.INVISIBLE);
+
                     }
-                    else if (msgString.startsWith("SampCountPos")) {
+                    else if (msgString.startsWith("SampCountPos") && recordingStatus) {
 
                         int indexStartI = msgString.indexOf("[") + 1;
                         int indexEndI = msgString.indexOf("]");
@@ -435,10 +437,11 @@ public class MonitorActivity extends ActionBarActivity{
                                 Integer.parseInt(msgString.substring(indexStartVal, indexEndVal));
                         mSampCountPosFlag = true;
                     }
-                    else if (recording && mSampCountPosFlag){   //packets
+                    else if (recordingStatus && mSampCountPosFlag){   //packets
                         Packets.add(readBuf);
-                        GraphAddData(readBuf, mGraph);
-                        mGraph.invalidate();
+                        //GraphAddData(readBuf, mGraph);
+                        GraphAddData(mGraph);
+
                     }
 
                     break;
@@ -455,7 +458,6 @@ public class MonitorActivity extends ActionBarActivity{
             }
         }
     };
-
     /**
      * Add sensors' packets' samples to the controller graph object.
      * @param PacketBuf - packet
@@ -477,6 +479,26 @@ public class MonitorActivity extends ActionBarActivity{
             }
         }
     }
+
+    /**
+     * Add a specific sensor's sample to the Multi-Sensor component
+     * return true only if the sample was added to graph
+     * */
+    //GRAPH
+
+    public boolean GraphAddData(PlotDynamic Graph){
+
+        if(mGraphMultiInd[mCurSensor]!=-1){
+            Graph.addData(mCurTime,mCurVal,mGraphMultiInd[mCurSensor]);
+            mGraphMultiCount++;
+            if (mGraphMultiCount == mGraphMultiMax) {
+                mGraphMultiCount=0;
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 
 }
