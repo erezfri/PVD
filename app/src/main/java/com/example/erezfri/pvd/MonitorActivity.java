@@ -67,8 +67,6 @@ public class MonitorActivity extends ActionBarActivity{
     public int[] mSampCountPos; //the position of the counter of the sensor's samples number
     private boolean mSampCountPosFlag;
     private LinearLayout graphPreview;
-    public int mCurSensor;      //used for fast ploting at multi-sensor
-    public float mCurVal,mCurTime; //  for fast ploting at multi-sensor
     public int mGraphMultiMax;
 
     //for the camera
@@ -157,7 +155,6 @@ public class MonitorActivity extends ActionBarActivity{
         mGraph.setColor(mGraphBackColor, PlotDynamic.Colorpart.backgroud);
         mGraph.setColor(mGraphGridColor, PlotDynamic.Colorpart.grid);
 
-        //TODO remove after stop
         //bulid view
         graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
         graphPreview.addView(mGraph);
@@ -278,13 +275,13 @@ public class MonitorActivity extends ActionBarActivity{
         if(!dir.exists())
             dir.mkdirs();
         Calendar c = Calendar.getInstance();
-        String myFile = path + "filename" + c.getTime().toString() + ".mp4" ;   //TODO set date and time format
+        String myFile = path + "filename" + c.getTime().toString() + ".mp4" ;
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
         mediaRecorder.setOutputFile(myFile);
     //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
 
         mediaRecorder.setMaxDuration(600000); // Set max duration 60 sec.//TODO think about it
-        mediaRecorder.setMaxFileSize(50000000); // Set max file size 50M//TODO think about it
+        mediaRecorder.setMaxFileSize(80000000); // Set max file size 80M//TODO think about it
         mediaRecorder.setOrientationHint(90);
         try {
             mediaRecorder.prepare();
@@ -439,8 +436,8 @@ public class MonitorActivity extends ActionBarActivity{
                     }
                     else if (recordingStatus && mSampCountPosFlag){   //packets
                         Packets.add(readBuf);
-                        //GraphAddData(readBuf, mGraph);
-                        GraphAddData(mGraph);
+                        GraphAddData(readBuf, mGraph);
+                        //GraphAddData(mGraph);
 
                     }
 
@@ -480,24 +477,24 @@ public class MonitorActivity extends ActionBarActivity{
         }
     }
 
-    /**
-     * Add a specific sensor's sample to the Multi-Sensor component
-     * return true only if the sample was added to graph
-     * */
-    //GRAPH
-
-    public boolean GraphAddData(PlotDynamic Graph){
-
-        if(mGraphMultiInd[mCurSensor]!=-1){
-            Graph.addData(mCurTime,mCurVal,mGraphMultiInd[mCurSensor]);
-            mGraphMultiCount++;
-            if (mGraphMultiCount == mGraphMultiMax) {
-                mGraphMultiCount=0;
-                return true;
-            }
-        }
-        return false;
-    }
+//    /**
+//     * Add a specific sensor's sample to the Multi-Sensor component
+//     * return true only if the sample was added to graph
+//     * */
+//    //GRAPH
+//
+//    public boolean GraphAddData(PlotDynamic Graph){
+//
+//        if(mGraphMultiInd[mCurSensor]!=-1){
+//            Graph.addData(mCurTime,mCurVal,mGraphMultiInd[mCurSensor]);
+//            mGraphMultiCount++;
+//            if (mGraphMultiCount == mGraphMultiMax) {
+//                mGraphMultiCount=0;
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
 
 

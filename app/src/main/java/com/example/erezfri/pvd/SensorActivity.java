@@ -237,7 +237,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
             mHandler.removeCallbacks(startTimer);
             mHandler.postDelayed(startTimer, 0);
             try{
-                sendMessage("START_SENSORNUM=" + mSensorNum + "@");//TODO something else "start video"
+                sendMessage("START_SENSORNUM=" + mSensorNum + "@");
                 mSensorManager.unregisterListener((SensorEventListener)mActivity);
                 Packets = new ArrayList<byte[]>();
                 SetStart();
