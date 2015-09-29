@@ -62,12 +62,13 @@ public class MonitorActivity extends ActionBarActivity{
     private PlotDynamic mGraph;
     public int mGraphMultiCount=0;
     private ArrayList<byte[]> Packets;
-    public int[] mGraphControlInd = new int[]{0,2,1}; //graph view index ‐ may determine the front graph
+    public int[] mGraphControlInd = new int[]{0}; //graph view index ‐ may determine the front graph
     public int[] mGraphMultiInd= new int[]{-1,0,-1};
     public int[] mSampCountPos; //the position of the counter of the sensor's samples number
     private boolean mSampCountPosFlag;
     private LinearLayout graphPreview;
     public int mGraphMultiMax;
+    public int mGraphMultiNum=0,mGraphControlNum=0;
 
     //for the camera
     private Context myContext;
@@ -146,7 +147,7 @@ public class MonitorActivity extends ActionBarActivity{
 
     public void Plot(){
         //Initialize view variables
-        mGraph = new PlotDynamic(this,1,1);
+        mGraph = new PlotDynamic(this,mGraphControlNum,1);
         mGraph.setTitle("Test");
         String[] mGraphGroupColor = new String[]{"#FF002060","#FFFF0000","#FF4A7EBB"};
         String[] mGraphBackColor = new String[]{"#FFBCBCBC"};
@@ -411,6 +412,7 @@ public class MonitorActivity extends ActionBarActivity{
                         mSensorNum = Integer.parseInt(msgString.substring(indexStart, indexEnd));
                         mSampCountPos=new int[mSensorNum];
                         mSampCountPosFlag = false;
+                        for (int i=0;i<mSensorNum;i++){if (mGraphControlInd[i]!=-1) mGraphControlNum++;}
                         Plot();
 
                     }
@@ -438,7 +440,7 @@ public class MonitorActivity extends ActionBarActivity{
                         Packets.add(readBuf);
                         GraphAddData(readBuf, mGraph);
                         //GraphAddData(mGraph);
-
+                        mGraph.invalidate();
                     }
 
                     break;
@@ -471,7 +473,9 @@ public class MonitorActivity extends ActionBarActivity{
             if(mGraphControlInd[i]!=-1){
                 int samplesNum=Packet.getInt();
                 for (int j=0;j<samplesNum;j++){
-                    Graph.addData(Packet.getFloat(),Packet.getFloat(), mGraphControlInd[i]);
+                    float xVal = Packet.getFloat();
+                    float yVal = Packet.getFloat();
+                    Graph.addData(xVal,yVal, mGraphControlInd[i]);
                 }
             }
         }

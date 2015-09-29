@@ -34,7 +34,7 @@ public class PlotDynamic extends View{
 	private ArrayList<ArrayList<Integer>> yvaluesGroup;
 	private ArrayList<ArrayList<Float>> xvaluesGroup;
 		
-	private float mMaxy=5,mMiny=-5,mPixels;
+	private float mMaxy=50,mMiny=-50,mPixels;
 	private float mxInterval =10;
 	private Canvas mCanvas;
 	private float mcanvasHeight,mcanvasWidth;
@@ -98,22 +98,26 @@ public class PlotDynamic extends View{
 		
 	    int[][] xvaluesInPixels = new int[mPlotNum][];
 	    for (int i=0;i<mPlotNum;i++){
-	    	xvaluesInPixels[i]=toPixel(mcanvasWidth,xvaluesGroup.get(i));
+	    	xvaluesInPixels[i]=toPixel(mcanvasWidth*2,xvaluesGroup.get(i));
 	    }
 	    
 		for (int i=0;i<mPlotNum;i++){	
 			ArrayList<Integer> yvalues = yvaluesGroup.get(i);
-		if (yvalues.size()>1){
-			int[] xvalues = xvaluesInPixels[i];
-			Paint paint = mPaint.get(i);
-			
-			for (int j = 0; j < yvalues.size()-1; j++) {
-				//canvas.drawCircle(xvalues[j],mcanvasHeight-yvalues.get(j).intValue(),2,paint);
-				//canvas.drawCircle(xvalues[j+1],mcanvasHeight-yvalues.get(j+1).intValue(),2,paint);
-				canvas.drawLine(xvalues[j],mcanvasHeight-yvalues.get(j).intValue(),xvalues[j+1],mcanvasHeight-yvalues.get(j+1).intValue(),paint);
+			if (yvalues.size()>1){
+				int[] xvalues = xvaluesInPixels[i];
+				//Paint paint = mPaint.get(i);
+				Paint paint = new Paint();
+				paint.setColor(Color.BLUE);
+				paint.setStrokeWidth(5.0f);
+
+				for (int j = 0; j < yvalues.size()-1; j++) {
+					//canvas.drawCircle(xvalues[j],mcanvasHeight-yvalues.get(j).intValue(),2,paint);
+					//canvas.drawCircle(xvalues[j+1],mcanvasHeight-yvalues.get(j+1).intValue(),2,paint);
+					canvas.drawLine(xvalues[j],mcanvasHeight-yvalues.get(j).intValue(),xvalues[j+1],mcanvasHeight-yvalues.get(j+1).intValue(),paint);
+				}
 			}
-		}
-			
+			xvaluesGroup.get(i).clear();
+			yvaluesGroup.get(i).clear();
 		}	
 	}
 	
@@ -122,15 +126,17 @@ public class PlotDynamic extends View{
 	 * u need to specify x and y values and a valid plot index.
 	 */
 	public void addData(float x,float y,int plotInd){
+		if (Float.isNaN(x) || Float.isNaN(y)) return;
 		ArrayList<Integer> yvalues = yvaluesGroup.get(plotInd);  
-		ArrayList<Float> xvalues = xvaluesGroup.get(plotInd);  
-		
-		// add y value as pixel
-		yvalues.add(Integer.valueOf(toPixel(y)));
+		ArrayList<Float> xvalues = xvaluesGroup.get(plotInd);
+
+
+		yvalues.add(Integer.valueOf(toPixel(y)));	// add y value as pixel
 		xvalues.add(Float.valueOf(x));
+
 		
 		// add x value as value
-		while(true){
+		/*while(true){
 			float Minx = xvalues.get(0);
 			if (x>Minx+mxInterval){
 				yvalues.remove(0);
@@ -138,7 +144,7 @@ public class PlotDynamic extends View{
 			}
 			else
 				break;
-		}
+		}*/
 	}
 	
 	/*
@@ -313,7 +319,7 @@ public class PlotDynamic extends View{
 	int[] pointsInt=new int[values.size()];
 	int i=0;
 	double p;
-	double startpixel=0.1*pixels;
+	double startpixel=0.05*pixels;
 	
 	if (values.size()>1){
 		float min = values.get(0);
@@ -323,6 +329,7 @@ public class PlotDynamic extends View{
 			pointsInt[i] = (int)p;
 			i++;
 		}
+
 		}
 	return (pointsInt);
 }

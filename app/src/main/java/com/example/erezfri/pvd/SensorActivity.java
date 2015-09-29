@@ -87,9 +87,10 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         };
 
         //Sensor Experiment info variables
-        mSenorTypeGroup=new int[]{Sensor.TYPE_GRAVITY,Sensor.TYPE_GYROSCOPE,Sensor.TYPE_LINEAR_ACCELERATION};
+        //mSenorTypeGroup=new int[]{Sensor.TYPE_GRAVITY,Sensor.TYPE_GYROSCOPE,Sensor.TYPE_LINEAR_ACCELERATION};
+        mSenorTypeGroup=new int[]{Sensor.TYPE_GYROSCOPE};
         mDefaultSensor=false;
-        mAxes = new int[]{axesZ,axesX,axesZ};
+        mAxes = new int[]{axesX,axesY,axesZ};
         mNamesGroup= new String[]{"4*Angle[rad]","Gyroscope(x)[rad/s]","Linear Accelerometer(z)[m/s^2]"};
         mModify = new boolean[]{MODIFY,TRANSPERENT,TRANSPERENT};
         mTime=WITHTIME;
@@ -214,13 +215,13 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mBTService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mBTService.getState() == BluetoothService.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mBTService.set();
-            }
-        }
+//        if (mBTService != null) {
+//            // Only if the state is STATE_NONE, do we know that we haven't started already
+//            if (mBTService.getState() == BluetoothService.STATE_NONE) {
+//                // Start the Bluetooth chat services
+//                mBTService.set();
+//            }
+//        }
         if (mAcquisitionFlag) {
             registerSensorListener();
         }
@@ -477,12 +478,13 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         // Send message and plot at the SAME PHASE
         boolean tosendFlag = PacketAdd(event);
         if(tosendFlag) {
+            SetPosition();
             for (int i = 0; i<mSensorNum; i++) {
                 String SampCountPosMessage = "SampCountPos[" + i + "]=" + mSampCountPos[i] + "@";
                 //mBTService.write(SampCountPosMessage.getBytes());
                 sendMessage(SampCountPosMessage);
             }
-            //mBTService.write(message);
+            mBTService.write(message);
             Packets.add(message);
 
         }
@@ -513,44 +515,57 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
      * */
     public boolean PacketAdd(SensorEvent event){
         int i;
-        // get sensor index
+        boolean flag = false;
+// get sensor index
         for(i=0;i<mSensorNum;i++){
-            if(event.sensor.getType()==mSenorTypeGroup[i]){
-                mCurSensor=i;
-                // get value to put at the Packet buffer
-                mCurVal=event.values[mAxes[i]];
-                if(mModify[i]){
-                    mCurVal=ModifySensorVal(mSenorTypeGroup[i],mCurVal);
-                }
-                // put sample at the Packet buffer and update buffer.
-                mPacket.position(mPosition[i]);
-                if(mTime) {
-                    //mPacket.putLong(event.timestamp);
-                    if(startTime2==Long.MIN_VALUE){
-                        startTime2=event.timestamp;
-                    }
-                    mCurTime = (float)(1e-9*(event.timestamp-startTime2));
-                    mPacket.putFloat(mCurTime);
-                }
-                mPacket.putFloat(mCurVal);
-                mPosition[i]=mPosition[i]+mSampByteNum;
-                mSampCount[i]++;
-
-                // if the sub-buffer is full then sending packet
-                if (mSampCount[i]==mSensorMaxSamp[i]){
-                    for(int j=0;j<mSensorNum;j++){
-                        mPacket.position(mSampCountPos[j]);
-                        mPacket.putInt(mSampCount[j]);
-                    }
-                    message=mPacket.array();
-                    //allocate new buffer - otherwise data will be override and won't be available for files
-                    if (D_MULTI_SENSOR_FILE) mPacket=ByteBuffer.allocate(4*mSensorNum+mTotSampNum*mSampByteNum);
-                    SetPosition();
-                    return true;
-                }
-            }
+            if(event.sensor.getType()==mSenorTypeGroup[i]) break;
         }
-        return false;
+        mCurSensor=i;
+// get value to put at the Packet buffer
+        float axisX = event.values[0];
+        float axisY = event.values[1];
+        float axisZ = event.values[2];
+        float omegaMagnitude = (float)Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
+
+        mCurVal=omegaMagnitude * 10;
+        /*if(mModify[i]){
+            mCurVal=ModifySensorVal(mSenorTypeGroup[i],mCurVal);
+        }*/
+// put sample at the Packet buffer and update buffer.
+        mPacket.position(mPosition[i]);
+        if(mTime) {
+//mPacket.putLong(event.timestamp);
+            if(startTime==Long.MIN_VALUE){
+                startTime=event.timestamp;
+            }
+            mCurTime = (float)(1e-9*(event.timestamp-startTime));
+            mPacket.putFloat(mCurTime);
+
+        }
+        mPacket.putFloat(mCurVal);
+        mPosition[i]=mPosition[i]+mSampByteNum;
+        mSampCount[i]++;
+
+// if the sub‐buffer is full then sending packet
+        if (mSampCount[i]==mSensorMaxSamp[i]){
+            for(int j=0;j<mSensorNum;j++){
+                mPacket.position(mSampCountPos[j]);
+                mPacket.putInt(mSampCount[j]);
+            }
+            message=mPacket.array();
+//allocate new buffer ‐ otherwise data will be override and won't be available for files
+            if (D_MULTI_SENSOR_FILE)
+                mPacket=ByteBuffer.allocate(4*mSensorNum+mTotSampNum*mSampByteNum);
+            //SetPosition();
+            flag = true;
+            return true;
+        }
+        if (flag){
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     private float ModifySensorVal(int SensorType,float val){
