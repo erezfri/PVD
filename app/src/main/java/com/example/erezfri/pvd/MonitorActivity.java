@@ -25,7 +25,9 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -80,6 +82,12 @@ public class MonitorActivity extends ActionBarActivity{
     private int mSensorNum = 0;
 
     private boolean recordingStatus = false;
+
+    //FILES
+    public String[] mFileNameMulti,mFileNameControl;
+    public ArrayList<File> mFileGroup;
+    public ArrayList<FileWriter> mFileWriterGroup;
+    private String sampleName = "";
 
 
     @Override
@@ -148,7 +156,7 @@ public class MonitorActivity extends ActionBarActivity{
     public void Plot(){
         //Initialize view variables
         mGraph = new PlotDynamic(this,mGraphControlNum,1);
-        mGraph.setTitle("Test");
+        mGraph.setTitle("The Sensor Activity");
         String[] mGraphGroupColor = new String[]{"#FF002060","#FFFF0000","#FF4A7EBB"};
         String[] mGraphBackColor = new String[]{"#FFBCBCBC"};
         String[] mGraphGridColor = new String[]{"#FFE0E0E0"};
@@ -271,12 +279,13 @@ public class MonitorActivity extends ActionBarActivity{
       //  mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
        // mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
        // mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/MyFolder/";
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/WPD/";
         File dir = new File(path);
         if(!dir.exists())
             dir.mkdirs();
         Calendar c = Calendar.getInstance();
-        String myFile = path + "filename" + c.getTime().toString() + ".mp4" ;
+        sampleName =  "sample_" + c.getTime().toString();
+        String myFile = path + sampleName + ".mp4" ;
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
         mediaRecorder.setOutputFile(myFile);
     //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
@@ -424,6 +433,9 @@ public class MonitorActivity extends ActionBarActivity{
                         Toast.makeText(getApplicationContext(),"The video stopped", Toast.LENGTH_SHORT).show();
                         graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
                         graphPreview.setVisibility(View.INVISIBLE);
+                        //file:
+                        CreateFile(sampleName + ".csv");
+                        Packets2File(Packets);
 
                     }
                     else if (msgString.startsWith("SampCountPos") && recordingStatus) {
@@ -439,7 +451,6 @@ public class MonitorActivity extends ActionBarActivity{
                     else if (recordingStatus && mSampCountPosFlag){   //packets
                         Packets.add(readBuf);
                         GraphAddData(readBuf, mGraph);
-                        //GraphAddData(mGraph);
                         mGraph.invalidate();
                     }
 
@@ -457,6 +468,98 @@ public class MonitorActivity extends ActionBarActivity{
             }
         }
     };
+
+    //=====
+    //FILES
+    //=====
+    /**
+     * Creates samples files - each sensor has its own file
+     * (used by the controller and may be used by the multi-sensor)
+     */
+    public void CreateFile(String filename){
+        //if(D_SAMPLE2FILE){
+        String state = Environment.getExternalStorageState();
+        if (!(state.equals(Environment.MEDIA_MOUNTED))) {
+            Toast.makeText(this ,"Media is not mounted" ,Toast.LENGTH_SHORT).show();
+            finish();
+        }
+        mFileGroup =new ArrayList<File>();
+        mFileWriterGroup= new ArrayList<FileWriter>();
+
+        //create files and it's writers
+        File path2 = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/WPD";
+        try{
+            File file = new File(path, filename);
+            mFileGroup.add(file);
+            if (file.exists()){
+                file.delete();
+            }
+            file.createNewFile();
+            mFileGroup.add(file);
+            mFileWriterGroup.add(new FileWriter(file));
+            //put file tables titles
+            for (int i=0;i<mSensorNum;i++){
+                FileWriter filewriter = mFileWriterGroup.get(i);
+                filewriter.append("time[sec]");
+                filewriter.append(',');
+                filewriter.append("value,");
+                filewriter.append('\n');
+            }
+        }
+        catch(IOException e)
+        {
+            //Toast.makeText(activity, e.getMessage() ,Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Writes the pull of packets to the files.
+     * (used by the controller and may be used by the multi-sensor)
+     */
+    public void Packets2File(ArrayList<byte[]> Packets){
+        for (byte[] p: Packets){
+            ByteBuffer Packet = ByteBuffer.wrap(p);//for each packet
+            //  at the packet - for each sensor i
+
+            for(int i=0;i<mSensorNum;i++){
+                //get appropriate filewriter
+                FileWriter filewriter = mFileWriterGroup.get(i);
+                //set position to the start of the sensor i message
+                Packet.position(mSampCountPos[i]);
+
+                //write to files
+                long x=Packet.getInt();
+                long samplesNum=100;
+                try{
+                    for (long n=0;n<samplesNum;n++){
+                        String time = Float.toString(Packet.getFloat());
+                        filewriter.append(time);
+                        filewriter.append(',');
+                        String value = Float.toString(Packet.getFloat());
+                        filewriter.append(value);
+                        filewriter.append('\n');
+                    }
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        //close files
+        for(int i=0;i<mSensorNum;i++){
+            FileWriter filewriter = mFileWriterGroup.get(i);
+            try{
+                filewriter.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * Add sensors' packets' samples to the controller graph object.
      * @param PacketBuf - packet

@@ -88,7 +88,8 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
         //Sensor Experiment info variables
         //mSenorTypeGroup=new int[]{Sensor.TYPE_GRAVITY,Sensor.TYPE_GYROSCOPE,Sensor.TYPE_LINEAR_ACCELERATION};
-        mSenorTypeGroup=new int[]{Sensor.TYPE_GYROSCOPE};
+        //mSenorTypeGroup=new int[]{Sensor.TYPE_GYROSCOPE};
+        mSenorTypeGroup=new int[]{Sensor.TYPE_ACCELEROMETER};
         mDefaultSensor=false;
         mAxes = new int[]{axesX,axesY,axesZ};
         mNamesGroup= new String[]{"4*Angle[rad]","Gyroscope(x)[rad/s]","Linear Accelerometer(z)[m/s^2]"};
@@ -215,13 +216,13 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-//        if (mBTService != null) {
-//            // Only if the state is STATE_NONE, do we know that we haven't started already
-//            if (mBTService.getState() == BluetoothService.STATE_NONE) {
-//                // Start the Bluetooth chat services
-//                mBTService.set();
-//            }
-//        }
+        if (mBTService != null) {
+            // Only if the state is STATE_NONE, do we know that we haven't started already
+            if (mBTService.getState() == BluetoothService.STATE_NONE) {
+                // Start the Bluetooth chat services
+                mBTService.set();
+            }
+        }
         if (mAcquisitionFlag) {
             registerSensorListener();
         }
@@ -527,7 +528,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         float axisZ = event.values[2];
         float omegaMagnitude = (float)Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
 
-        mCurVal=omegaMagnitude * 10;
+        mCurVal=omegaMagnitude;
         /*if(mModify[i]){
             mCurVal=ModifySensorVal(mSenorTypeGroup[i],mCurVal);
         }*/
