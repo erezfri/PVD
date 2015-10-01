@@ -501,6 +501,7 @@ public class MonitorActivity extends ActionBarActivity{
             //put file tables titles
             for (int i=0;i<mSensorNum;i++){
                 FileWriter filewriter = mFileWriterGroup.get(i);
+                
                 filewriter.append("time[sec]");
                 filewriter.append(',');
                 filewriter.append("value,");
