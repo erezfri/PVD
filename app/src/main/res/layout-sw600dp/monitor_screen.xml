@@ -9,10 +9,9 @@
     <!--android:background="@drawable/button2"-->
     <Button xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="400px"
-        android:layout_height="200px"
+        android:layout_height="220px"
         android:text="Search for device"
         android:id="@+id/searchButton"
-
         android:onClick="onSearchButtonClick"
         android:clickable="true"
         android:layout_below="@+id/textView10"
@@ -37,17 +36,18 @@
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/camera_preview"
-            android:layout_width="150dp"
-            android:layout_height="200dp"
-            android:orientation="horizontal"
+            android:layout_width="500dp"
+            android:layout_height="140dp"
+            android:orientation="vertical"
             android:layout_centerHorizontal="true"
-            android:layout_gravity="top"/>
+            android:layout_gravity="top"
+            />
 
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/graph_preview"
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="130dp"
             android:orientation="horizontal"
             android:layout_gravity="bottom"
             android:layout_below="@+id/camera_preview"/>

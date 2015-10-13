@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
@@ -162,8 +163,6 @@ public class MonitorActivity extends ActionBarActivity{
         String[] mGraphGridColor = new String[]{"#FFE0E0E0"};
         mGraph.setColor(mGraphGroupColor, PlotDynamic.Colorpart.plots);
         mGraph.setColor(mGraphBackColor, PlotDynamic.Colorpart.backgroud);
-        mGraph.setColor(mGraphGridColor, PlotDynamic.Colorpart.grid);
-
         //bulid view
         graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
         graphPreview.addView(mGraph);
@@ -190,7 +189,12 @@ public class MonitorActivity extends ActionBarActivity{
 //               // switchCamera.setVisibility(View.GONE);
 //            }
             mCamera = Camera.open(findBackFacingCamera());
-            mCamera.setDisplayOrientation(90);
+            if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                mCamera.setDisplayOrientation(90);
+            } else {
+                mCamera.setDisplayOrientation(0);
+            }
+          //  mCamera.setDisplayOrientation(90);
             mPreview.refreshCamera(mCamera);
         }
     }
@@ -427,6 +431,7 @@ public class MonitorActivity extends ActionBarActivity{
                     }
                     else if (msgString.startsWith("STOP")){
                         recordingStatus = false;
+                        mGraphControlNum = 0;
                         TextView t = (TextView)findViewById(R.id.recordingStatus);
                         handleStartStop();
                         t.setVisibility(View.INVISIBLE);
@@ -501,10 +506,11 @@ public class MonitorActivity extends ActionBarActivity{
             //put file tables titles
             for (int i=0;i<mSensorNum;i++){
                 FileWriter filewriter = mFileWriterGroup.get(i);
-                
-                filewriter.append("time[sec]");
+
+                filewriter.append("value");
                 filewriter.append(',');
-                filewriter.append("value,");
+
+                filewriter.append("time[sec]");
                 filewriter.append('\n');
             }
         }
@@ -532,15 +538,15 @@ public class MonitorActivity extends ActionBarActivity{
 
                 //write to files
                 long x=Packet.getInt();
-                long samplesNum=100;
+                int samplesNum=Packet.getInt();
                 try{
-                    for (long n=0;n<samplesNum;n++){
-                        String time = Float.toString(Packet.getFloat());
-                        filewriter.append(time);
-                        filewriter.append(',');
+                    for (int n=0;n<samplesNum;n++){
                         String value = Float.toString(Packet.getFloat());
-                        filewriter.append(value);
-                        filewriter.append('\n');
+                            filewriter.append(value);
+                            filewriter.append(',');
+                            String time = Float.toString(Packet.getFloat());
+                            filewriter.append(time);
+                            filewriter.append('\n');
                     }
                 }
                 catch (Exception e) {
