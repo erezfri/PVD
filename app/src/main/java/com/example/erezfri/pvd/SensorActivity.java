@@ -87,7 +87,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         };
 
         //Sensor Experiment info variables
-        //mSenorTypeGroup=new int[]{Sensor.TYPE_GRAVITY,Sensor.TYPE_GYROSCOPE,Sensor.TYPE_LINEAR_ACCELERATION};
         //mSenorTypeGroup=new int[]{Sensor.TYPE_GYROSCOPE};
         mSenorTypeGroup=new int[]{Sensor.TYPE_ACCELEROMETER};
         mDefaultSensor=false;

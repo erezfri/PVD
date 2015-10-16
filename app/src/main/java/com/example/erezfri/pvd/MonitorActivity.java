@@ -163,6 +163,8 @@ public class MonitorActivity extends ActionBarActivity{
         String[] mGraphGridColor = new String[]{"#FFE0E0E0"};
         mGraph.setColor(mGraphGroupColor, PlotDynamic.Colorpart.plots);
         mGraph.setColor(mGraphBackColor, PlotDynamic.Colorpart.backgroud);
+        mGraph.setColor(mGraphGridColor, PlotDynamic.Colorpart.grid);
+
         //bulid view
         graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
         graphPreview.addView(mGraph);
@@ -506,11 +508,10 @@ public class MonitorActivity extends ActionBarActivity{
             //put file tables titles
             for (int i=0;i<mSensorNum;i++){
                 FileWriter filewriter = mFileWriterGroup.get(i);
-
-                filewriter.append("value");
-                filewriter.append(',');
-
+                
                 filewriter.append("time[sec]");
+                filewriter.append(',');
+                filewriter.append("value,");
                 filewriter.append('\n');
             }
         }
@@ -538,15 +539,15 @@ public class MonitorActivity extends ActionBarActivity{
 
                 //write to files
                 long x=Packet.getInt();
-                int samplesNum=Packet.getInt();
+                long samplesNum=100;
                 try{
-                    for (int n=0;n<samplesNum;n++){
+                    for (long n=0;n<samplesNum;n++){
+                        String time = Float.toString(Packet.getFloat());
+                        filewriter.append(time);
+                        filewriter.append(',');
                         String value = Float.toString(Packet.getFloat());
-                            filewriter.append(value);
-                            filewriter.append(',');
-                            String time = Float.toString(Packet.getFloat());
-                            filewriter.append(time);
-                            filewriter.append('\n');
+                        filewriter.append(value);
+                        filewriter.append('\n');
                     }
                 }
                 catch (Exception e) {
