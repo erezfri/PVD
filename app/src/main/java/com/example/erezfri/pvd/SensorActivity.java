@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -123,7 +124,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     public boolean[] mModify;
     public int mSensorNum;//=mSenorTypeGroup.length;
     private boolean mDefaultSensor;
-    
 
     //sensor
     private ArrayList<Sensor> mSensorGroup = new ArrayList<Sensor>(mSensorNum);
@@ -176,6 +176,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         setContentView(R.layout.sensor_screen);
         Button stopButton = (Button)findViewById(R.id.stopButton);
         stopButton.setVisibility(View.GONE);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         //bluetooth
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
