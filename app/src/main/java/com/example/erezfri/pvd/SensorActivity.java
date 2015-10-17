@@ -123,6 +123,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     public boolean[] mModify;
     public int mSensorNum;//=mSenorTypeGroup.length;
     private boolean mDefaultSensor;
+    
 
     //sensor
     private ArrayList<Sensor> mSensorGroup = new ArrayList<Sensor>(mSensorNum);
