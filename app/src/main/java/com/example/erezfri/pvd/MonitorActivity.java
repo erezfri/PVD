@@ -413,6 +413,7 @@ public class MonitorActivity extends ActionBarActivity{
                     break;
                 case BluetoothService.MESSAGE_READ:
 
+
                     byte[] readBuf = (byte[]) msg.obj;
                     String msgString = new String(readBuf);
                     if (msgString.startsWith("START"))
