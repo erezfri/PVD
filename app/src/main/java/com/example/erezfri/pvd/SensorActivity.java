@@ -199,8 +199,8 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         if (!mBluetoothAdapter.isEnabled()) {
             Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
-            Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
-            startActivity(intent);
+            //Intent intent = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+            //startActivity(intent);
 
         }
 
@@ -217,13 +217,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mBTService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mBTService.getState() == BluetoothService.STATE_NONE) {
-                // Start the Bluetooth chat services
-                mBTService.set();
-            }
-        }
+
         if (mAcquisitionFlag) {
             registerSensorListener();
         }
@@ -638,6 +632,14 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                 if (resultCode == Activity.RESULT_OK){
                     //Bluetooth is now enabled, so set up bluetoothServie
                     mBTService = new BluetoothService(this, mHandler,mConnectSide);
+
+                    if (mBTService != null) {
+                        // Only if the state is STATE_NONE, do we know that we haven't started already
+                        if (mBTService.getState() == BluetoothService.STATE_NONE) {
+                            // Start the Bluetooth chat services
+                            mBTService.set();
+                        }
+                    }
                 }
                 else{
                     //User didn't enable bluetooth or error was occurred

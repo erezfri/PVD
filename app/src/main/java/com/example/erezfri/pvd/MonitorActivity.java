@@ -163,7 +163,7 @@ public class MonitorActivity extends ActionBarActivity{
 
     public void Plot(){
         //Initialize view variables
-        mGraph = new PlotDynamic(this,mGraphControlNum,1);
+        mGraph = new PlotDynamic(this,1,1);
         mGraph.setTitle("The Sensor Activity");
         String[] mGraphGroupColor = new String[]{"#FF002060","#FFFF0000","#FF4A7EBB"};
         String[] mGraphBackColor = new String[]{"#FFBCBCBC"};
@@ -435,13 +435,13 @@ public class MonitorActivity extends ActionBarActivity{
                         mSensorNum = Integer.parseInt(msgString.substring(indexStart, indexEnd));
                         mSampCountPos=new int[mSensorNum];
                         mSampCountPosFlag = false;
-                        for (int i=0;i<mSensorNum;i++){if (mGraphControlInd[i]!=-1) mGraphControlNum++;}
+                        //for (int i=0;i<mSensorNum;i++){if (mGraphControlInd[i]!=-1) mGraphControlNum++;}
                         Plot();
 
                     }
                     else if (msgString.startsWith("STOP")){
                         recordingStatus = false;
-                        mGraphControlNum = 0;
+                        //mGraphControlNum = 0;
                         TextView t = (TextView)findViewById(R.id.recordingStatus);
                         handleStartStop();
                         t.setVisibility(View.INVISIBLE);
