@@ -465,7 +465,7 @@ public class MonitorActivity extends ActionBarActivity{
                         mSampCountPosFlag = true;
                     }
                     else if (recordingStatus && mSampCountPosFlag){   //packets
-                        Packets.add(readBuf);
+                        Packets.add(readBuf.clone());
                         GraphAddData(readBuf, mGraph);
                         mGraph.invalidate();
                     }

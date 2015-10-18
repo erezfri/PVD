@@ -88,8 +88,8 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         };
 
         //Sensor Experiment info variables
-        //mSenorTypeGroup=new int[]{Sensor.TYPE_GYROSCOPE};
-        mSenorTypeGroup=new int[]{Sensor.TYPE_ACCELEROMETER};
+        mSenorTypeGroup=new int[]{Sensor.TYPE_GYROSCOPE};
+        //mSenorTypeGroup=new int[]{Sensor.TYPE_ACCELEROMETER};
         mDefaultSensor=false;
         mAxes = new int[]{axesX,axesY,axesZ};
         mNamesGroup= new String[]{"4*Angle[rad]","Gyroscope(x)[rad/s]","Linear Accelerometer(z)[m/s^2]"};
@@ -451,6 +451,13 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                 sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[i]));
             }
         }
+
+        if (sensorGroup.size()==0)
+        {
+            mSenorTypeGroup[0] = Sensor.TYPE_ACCELEROMETER;
+            sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[0]));
+        }
+
 
         return sensorGroup;
     }
