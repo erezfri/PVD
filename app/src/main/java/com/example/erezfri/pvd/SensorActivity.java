@@ -169,6 +169,10 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     public ArrayList<File> mFileGroup;
     public ArrayList<FileWriter> mFileWriterGroup;
 
+    //test for change the sensor type
+    private Sensor senAccelerometr;
+    private Sensor senGyro;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -188,6 +192,16 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
         //Get SensorManager and sensors
         mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+
+        //test for changes
+        //senAccelerometr = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        senGyro = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        //end changes
+
+        if (senGyro == null){
+            mSenorTypeGroup[0]=Sensor.TYPE_ACCELEROMETER;
+        }
+
         mSensorGroup = getSensors(mSensorManager);
     }
 
@@ -425,6 +439,10 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
      */
     public ArrayList<Sensor> getSensors(SensorManager sensorManager){
         ArrayList<Sensor> sensorGroup = new ArrayList<Sensor>(mSensorNum);
+//        boolean accelerometer = sensorManager.registerListener(this,sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),1);
+//        if (accelerometer){
+//            mSenorTypeGroup[0]=Sensor.TYPE_ACCELEROMETER;
+//        }
 
         //take the default sensors - HW
         if (mDefaultSensor){
@@ -452,11 +470,12 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
             }
         }
 
-        if (sensorGroup.size()==0)
-        {
-            mSenorTypeGroup[0] = Sensor.TYPE_ACCELEROMETER;
-            sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[0]));
-        }
+//        if (sensorGroup.size()==0)
+//        {
+//            mSenorTypeGroup[0] = Sensor.TYPE_ACCELEROMETER;
+//            sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[0]));
+//
+//        }
 
 
         return sensorGroup;
