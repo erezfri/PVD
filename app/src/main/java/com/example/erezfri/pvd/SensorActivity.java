@@ -266,11 +266,11 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
             try{
                 sendMessage("STOP");
                 mSensorManager.unregisterListener((SensorEventListener)mActivity);
-                if(D_MULTI_SENSOR_FILE){
-                    Toast.makeText(mActivity,"Saving files and Leaving pendulum experiment" ,Toast.LENGTH_LONG).show();
-                    CreateFile(mFileNameMulti, mActivity);
-                    Packets2File(Packets);
-                }
+//                if(D_MULTI_SENSOR_FILE){
+//                    Toast.makeText(mActivity,"Saving files and Leaving pendulum experiment" ,Toast.LENGTH_LONG).show();
+//                    CreateFile(mFileNameMulti, mActivity);
+//                    Packets2File(Packets);
+//                }
                 //finish();
 
             }catch (Exception e){}
@@ -590,13 +590,13 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         }
     }
 
-    private float ModifySensorVal(int SensorType,float val){
-        float modval=val;
-        if(SensorType==Sensor.TYPE_GRAVITY){
-            modval = (float) (4*Math.asin(val/9.8));
-        }
-        return modval;
-    }
+//    private float ModifySensorVal(int SensorType,float val){
+//        float modval=val;
+//        if(SensorType==Sensor.TYPE_GRAVITY){
+//            modval = (float) (4*Math.asin(val/9.8));
+//        }
+//        return modval;
+//    }
 
 
     /**
@@ -622,21 +622,21 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
      * Sends a message.
      * @param message  A string of text to send.
      */
-    private void sendMessagea(String message) { //
-        // Check that we're actually connected before trying anything
-        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
-            Toast.makeText(this,"Not connected to the bluetooth", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            mBTService.write(send);
-
-        }
-    }
+//    private void sendMessagea(String message) { //
+//        // Check that we're actually connected before trying anything
+//        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
+//            Toast.makeText(this,"Not connected to the bluetooth", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        // Check that there's actually something to send
+//        if (message.length() > 0) {
+//            // Get the message bytes and tell the BluetoothChatService to write
+//            byte[] send = message.getBytes();
+//            mBTService.write(send);
+//
+//        }
+//    }
     /**
      * Set the start time of the experiment:
      * set the first event time to be zero and set new packet.
@@ -704,19 +704,19 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
     }
 
-    public boolean CheckMessageType(byte[] message,ControlMessage messagetype){
-        boolean Check = false;
-
-        switch (messagetype){
-            case start:
-                if(ByteBuffer.wrap(message).getInt()==startMessage)
-                    Check=true;
-                else
-                    Check=false;
-        }
-        return Check;
-
-    }
+//    public boolean CheckMessageType(byte[] message,ControlMessage messagetype){
+//        boolean Check = false;
+//
+//        switch (messagetype){
+//            case start:
+//                if(ByteBuffer.wrap(message).getInt()==startMessage)
+//                    Check=true;
+//                else
+//                    Check=false;
+//        }
+//        return Check;
+//
+//    }
 
 
 
@@ -727,92 +727,92 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
      * Creates samples files - each sensor has its own file
      * (used by the controller and may be used by the multi-sensor)
      */
-    public void CreateFile(String[] filenames,Activity activity){
-        //if(D_SAMPLE2FILE){
-        String state = Environment.getExternalStorageState();
-        if (!(state.equals(Environment.MEDIA_MOUNTED))) {
-            Toast.makeText(activity ,"Media is not mounted" ,Toast.LENGTH_SHORT).show();
-            activity.finish();
-        }
-        mFileGroup =new ArrayList<File>();
-        mFileWriterGroup= new ArrayList<FileWriter>();
-
-        //create files and it's writers
-        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        path.mkdirs();
-        try{
-            for(int i=0;i<mSensorNum;i++){
-                File file = new File(path, filenames[i]);
-                mFileGroup.add(file);
-                if (file.exists()){
-                    file.delete();
-                }
-                file.createNewFile();
-                mFileGroup.add(file);
-                mFileWriterGroup.add(new FileWriter(file));
-            }
-            //put file tables titles
-            for (int i=0;i<mSensorNum;i++){
-                FileWriter filewriter = mFileWriterGroup.get(i);
-                if(mTime){
-                    filewriter.append("time[sec]");
-                    filewriter.append(',');
-                }
-                filewriter.append("TEST~~~~~~");//mNamesGroup[i]);
-                filewriter.append('\n');
-            }
-        }
-        catch(IOException e)
-        {
-            //Toast.makeText(activity, e.getMessage() ,Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        }
-    }
+//    public void CreateFile(String[] filenames,Activity activity){
+//        //if(D_SAMPLE2FILE){
+//        String state = Environment.getExternalStorageState();
+//        if (!(state.equals(Environment.MEDIA_MOUNTED))) {
+//            Toast.makeText(activity ,"Media is not mounted" ,Toast.LENGTH_SHORT).show();
+//            activity.finish();
+//        }
+//        mFileGroup =new ArrayList<File>();
+//        mFileWriterGroup= new ArrayList<FileWriter>();
+//
+//        //create files and it's writers
+//        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+//        path.mkdirs();
+//        try{
+//            for(int i=0;i<mSensorNum;i++){
+//                File file = new File(path, filenames[i]);
+//                mFileGroup.add(file);
+//                if (file.exists()){
+//                    file.delete();
+//                }
+//                file.createNewFile();
+//                mFileGroup.add(file);
+//                mFileWriterGroup.add(new FileWriter(file));
+//            }
+//            //put file tables titles
+//            for (int i=0;i<mSensorNum;i++){
+//                FileWriter filewriter = mFileWriterGroup.get(i);
+//                if(mTime){
+//                    filewriter.append("time[sec]");
+//                    filewriter.append(',');
+//                }
+//                filewriter.append("TEST~~~~~~");//mNamesGroup[i]);
+//                filewriter.append('\n');
+//            }
+//        }
+//        catch(IOException e)
+//        {
+//            //Toast.makeText(activity, e.getMessage() ,Toast.LENGTH_SHORT).show();
+//            e.printStackTrace();
+//        }
+//    }
 
     /**
      * Writes the pull of packets to the files.
      * (used by the controller and may be used by the multi-sensor)
      */
-    public void Packets2File(ArrayList<byte[]> Packets){
-        for (byte[] p: Packets){
-            ByteBuffer Packet = ByteBuffer.wrap(p);//for each packet
-            //  at the packet - for each sensor i
-
-            for(int i=0;i<mSensorNum;i++){
-                //get appropriate filewriter
-                FileWriter filewriter = mFileWriterGroup.get(i);
-                //set position to the start of the sensor i message
-                Packet.position(mSampCountPos[i]);
-
-                //write to files
-                int samplesNum=Packet.getInt();
-                try{
-                    for (int n=0;n<samplesNum;n++){
-                        if(mTime)  {
-                            String time = Float.toString(Packet.getFloat());
-                            filewriter.append(time);
-                            filewriter.append(',');
-                        }
-                        filewriter.append(Float.toString(Packet.getFloat()));
-                        filewriter.append('\n');
-                    }
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        //close files
-        for(int i=0;i<mSensorNum;i++){
-            FileWriter filewriter = mFileWriterGroup.get(i);
-            try{
-                filewriter.close();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    public void Packets2File(ArrayList<byte[]> Packets){
+//        for (byte[] p: Packets){
+//            ByteBuffer Packet = ByteBuffer.wrap(p);//for each packet
+//            //  at the packet - for each sensor i
+//
+//            for(int i=0;i<mSensorNum;i++){
+//                //get appropriate filewriter
+//                FileWriter filewriter = mFileWriterGroup.get(i);
+//                //set position to the start of the sensor i message
+//                Packet.position(mSampCountPos[i]);
+//
+//                //write to files
+//                int samplesNum=Packet.getInt();
+//                try{
+//                    for (int n=0;n<samplesNum;n++){
+//                        if(mTime)  {
+//                            String time = Float.toString(Packet.getFloat());
+//                            filewriter.append(time);
+//                            filewriter.append(',');
+//                        }
+//                        filewriter.append(Float.toString(Packet.getFloat()));
+//                        filewriter.append('\n');
+//                    }
+//                }
+//                catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//
+//        //close files
+//        for(int i=0;i<mSensorNum;i++){
+//            FileWriter filewriter = mFileWriterGroup.get(i);
+//            try{
+//                filewriter.close();
+//            }
+//            catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
 }
