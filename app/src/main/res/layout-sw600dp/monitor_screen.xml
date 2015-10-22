@@ -8,8 +8,8 @@
 
     <!--android:background="@drawable/button2"-->
     <Button xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="400px"
-        android:layout_height="220px"
+        android:layout_width="180px"
+        android:layout_height="50px"
         android:text="Search for device"
         android:id="@+id/searchButton"
         android:onClick="onSearchButtonClick"
@@ -36,8 +36,8 @@
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/camera_preview"
-            android:layout_width="500dp"
-            android:layout_height="140dp"
+            android:layout_width="480dp"
+            android:layout_height="260dp"
             android:orientation="vertical"
             android:layout_centerHorizontal="true"
             android:layout_gravity="top"
@@ -47,7 +47,7 @@
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/graph_preview"
             android:layout_width="match_parent"
-            android:layout_height="130dp"
+            android:layout_height="220dp"
             android:orientation="horizontal"
             android:layout_gravity="bottom"
             android:layout_below="@+id/camera_preview"/>

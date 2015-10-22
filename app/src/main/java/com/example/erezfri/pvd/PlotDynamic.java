@@ -98,7 +98,8 @@ public class PlotDynamic extends View{
 		
 	    int[][] xvaluesInPixels = new int[mPlotNum][];
 	    for (int i=0;i<mPlotNum;i++){
-	    	xvaluesInPixels[i]=toPixel(mcanvasWidth*2,xvaluesGroup.get(i));
+	    	//xvaluesInPixels[i]=toPixel(mcanvasWidth*2,xvaluesGroup.get(i));//TODO here
+			xvaluesInPixels[i]=toPixel(mcanvasWidth*2,xvaluesGroup.get(i));
 	    }
 	    
 		for (int i=0;i<mPlotNum;i++){	
@@ -135,42 +136,8 @@ public class PlotDynamic extends View{
 		xvalues.add(Float.valueOf(x));
 
 		
-		// add x value as value
-		/*while(true){
-			float Minx = xvalues.get(0);
-			if (x>Minx+mxInterval){
-				yvalues.remove(0);
-				xvalues.remove(0);
-			}
-			else
-				break;
-		}*/
+
 	}
-	
-	/*
-	public void clearData(){
-		Float temp = xvalues.get(0);
-		xvalues.clear();
-		xvalues.add(temp);
-		
-		temp = yvalues.get(0);
-		yvalues.clear();
-		yvalues.add(temp);
-	}*/
-	
-	/*
-	private float[] getFloat(ArrayList<Float> value) {
-		
-		float[] v = new float[value.size()];
-		
-		int i=0;
-		for (Float f:value){
-			v[i++]=(f != null ? f.floatValue() : Float.NaN); 
-		}
-		
-		return (v);
-	}*/
-	
 	
 	
 	/**
@@ -183,6 +150,7 @@ public class PlotDynamic extends View{
 	private void Legend(){
 		if (mPlotName!=null){
 			double[] posTitles = new double[]{0.75*mcanvasWidth,0.13*mcanvasHeight};
+
 			double[] posTitlesSign = new double[]{(0.75-0.03)*mcanvasWidth,(0.13-0.005)*mcanvasHeight};
 		
 			double deltaTitle=0.03*mcanvasHeight;
@@ -251,9 +219,9 @@ public class PlotDynamic extends View{
 	private void setAxes(){
 		//plot Axes
 		mPaintAxes.setColor(Color.BLACK);
-		mCanvas.drawLine(0,mcanvasHeight/2,mcanvasWidth,mcanvasHeight/2,mPaintAxes);
+		mCanvas.drawLine(0, mcanvasHeight / 2, mcanvasWidth, mcanvasHeight / 2, mPaintAxes);
 		mCanvas.drawLine((float)0.1*mcanvasWidth,0,(float)0.1*mcanvasWidth,mcanvasHeight,mPaintAxes);
-		
+		//mCanvas.drawLine((float)mcanvasWidth,0,(float)mcanvasWidth,mcanvasHeight,mPaintAxes);
 		//Put values
 		mPaintText.setTextSize(20.0f);
 		mPaintText.setTextAlign(Align.RIGHT);
@@ -320,7 +288,6 @@ public class PlotDynamic extends View{
 	int i=0;
 	double p;
 	double startpixel=0.05*pixels;
-	
 	if (values.size()>1){
 		float min = values.get(0);
 		
@@ -333,33 +300,7 @@ public class PlotDynamic extends View{
 		}
 	return (pointsInt);
 }
-	
-	
-	/*private int[] toPixel(float pixels, float min, float max, ArrayList<Float> values) {
-		
-		int[] pointsInt=new int[values.size()];
-		
-		int i=0;
-		double p;
-		float halfpixels=pixels/2;
-		for(Float f: values){
-			
-			if(f.floatValue()>0){
-				p = halfpixels+((f.floatValue())/(max))*.9*halfpixels;
-			}
-			else if(f.floatValue()<0){
-				p = halfpixels-((f.floatValue())/(min))*.9*halfpixels;
-			}
-			else {
-				p = halfpixels;
-			}
-			
-			pointsInt[i] = (int)p;
-			i++;
-		}
-		
-		return (pointsInt);
-	}*/
+
 	
 }
 

@@ -72,4 +72,18 @@
         android:layout_centerHorizontal="true"
         android:layout_centerInParent="true"/>
 
+    <TextView
+        android:layout_width="140dp"
+        android:layout_height="45dp"
+        android:id="@+id/txtSensorType"
+        android:layout_below="@+id/startButton"
+        android:layout_marginTop="23dp"
+        android:text="Sensor Type"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignRight="@+id/aboutButton"
+        android:layout_alignParentLeft="true"
+        android:autoText="false"
+        android:gravity="center" />
+
 </RelativeLayout>

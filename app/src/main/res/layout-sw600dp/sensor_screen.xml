@@ -70,4 +70,13 @@
         android:layout_centerHorizontal="true"
         android:layout_centerInParent="true"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtSensorType"
+        android:text="Sensor Type"
+        android:layout_above="@+id/counterText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="55dp" />
+
 </RelativeLayout>

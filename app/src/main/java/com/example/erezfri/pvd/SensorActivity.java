@@ -171,10 +171,9 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     public ArrayList<FileWriter> mFileWriterGroup;
 
     //test for change the sensor type
-    private Sensor senAccelerometr;
     private Sensor senGyro;
-
-
+    TextView sensorType;
+    private boolean isGyro = true;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -201,8 +200,16 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
         if (senGyro == null){
             mSenorTypeGroup[0]=Sensor.TYPE_ACCELEROMETER;
+            isGyro=false;
         }
-
+        sensorType = (TextView)findViewById(R.id.txtSensorType);
+        if (isGyro) {
+            sensorType.setText("Gyroscope Sensor is ready");
+        }
+        else
+        {
+            sensorType.setText("Accelerometer Sensor is ready");
+        }
         mSensorGroup = getSensors(mSensorManager);
     }
 
@@ -548,7 +555,8 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         float axisX = event.values[0];
         float axisY = event.values[1];
         float axisZ = event.values[2];
-        float omegaMagnitude = (float)Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
+        //float omegaMagnitude = (float)Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ); //TODO change to y only!!
+        float omegaMagnitude = axisY;
 
         mCurVal=omegaMagnitude;
         /*if(mModify[i]){
