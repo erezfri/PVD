@@ -39,6 +39,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     //timer
     private Handler mHandler = new Handler();
     private long startTime;
+    private long firstTimeDif;
     private long elapsedTime;
     private final int REFRESH_RATE = 100;
     private String hours,minutes,seconds,milliseconds;
@@ -559,6 +560,7 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 //mPacket.putLong(event.timestamp);
             if(startTime==Long.MIN_VALUE){
                 startTime=event.timestamp;
+                firstTimeDif = startTime;
             }
             mCurTime = (float)(1e-9*(event.timestamp-startTime));
             mPacket.putFloat(mCurTime);

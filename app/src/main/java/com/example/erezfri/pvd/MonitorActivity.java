@@ -202,6 +202,7 @@ public class MonitorActivity extends ActionBarActivity{
             mCamera = Camera.open(findBackFacingCamera());
             if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
                 mCamera.setDisplayOrientation(90);
+               // mCamera.setDisplayOrientation(0);
             } else {
                 mCamera.setDisplayOrientation(0);
             }
@@ -305,9 +306,15 @@ public class MonitorActivity extends ActionBarActivity{
         mediaRecorder.setOutputFile(myFile);
     //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
 
-        mediaRecorder.setMaxDuration(600000); // Set max duration 60 sec.//TODO think about it
-        mediaRecorder.setMaxFileSize(80000000); // Set max file size 80M//TODO think about it
-        mediaRecorder.setOrientationHint(90);
+        mediaRecorder.setMaxDuration(3000000); // Set max duration 60 sec * 5 = 5 minutes.//TODO think about it
+        mediaRecorder.setMaxFileSize(800000000); // Set max file size 800M//TODO think about it
+        if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+            mediaRecorder.setOrientationHint(90);
+            // mCamera.setDisplayOrientation(0);
+        } else {
+            mediaRecorder.setOrientationHint(0);
+        }
+        //mediaRecorder.setOrientationHint(90);
         try {
             mediaRecorder.prepare();
         } catch (IllegalStateException e) {
@@ -536,6 +543,7 @@ public class MonitorActivity extends ActionBarActivity{
      * (used by the controller and may be used by the multi-sensor)
      */
     public void Packets2File(ArrayList<byte[]> Packets){
+        float startTime = Float.MAX_VALUE;
         for (byte[] p: Packets){
             ByteBuffer Packet = ByteBuffer.wrap(p);//for each packet
             //  at the packet - for each sensor i
@@ -551,8 +559,11 @@ public class MonitorActivity extends ActionBarActivity{
                 long samplesNum=100;
                 try{
                     for (long n=0;n<samplesNum;n++){
-                        String time = Float.toString(Packet.getFloat());
-                        filewriter.append(time);
+                        float timeFloat = Packet.getFloat();
+                        if (timeFloat < startTime) startTime = timeFloat;
+                        timeFloat = timeFloat-startTime;
+                        String timeStr = Float.toString(timeFloat);
+                        filewriter.append(timeStr);
                         filewriter.append(',');
                         String value = Float.toString(Packet.getFloat());
                         filewriter.append(value);
