@@ -33,6 +33,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		}
 	}
 
+
 	public void refreshCamera(Camera camera) {
 		if (mHolder.getSurface() == null) {
 			// preview surface does not exist

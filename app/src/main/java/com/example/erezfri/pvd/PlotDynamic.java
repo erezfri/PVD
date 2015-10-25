@@ -34,7 +34,7 @@ public class PlotDynamic extends View{
 	private ArrayList<ArrayList<Integer>> yvaluesGroup;
 	private ArrayList<ArrayList<Float>> xvaluesGroup;
 		
-	private float mMaxy=50,mMiny=-50,mPixels;
+	private float mMaxy=10,mMiny=-10,mPixels;
 	private float mxInterval =10;
 	private Canvas mCanvas;
 	private float mcanvasHeight,mcanvasWidth;
@@ -98,8 +98,7 @@ public class PlotDynamic extends View{
 		
 	    int[][] xvaluesInPixels = new int[mPlotNum][];
 	    for (int i=0;i<mPlotNum;i++){
-	    	//xvaluesInPixels[i]=toPixel(mcanvasWidth*2,xvaluesGroup.get(i));//TODO here
-			xvaluesInPixels[i]=toPixel(mcanvasWidth*2,xvaluesGroup.get(i));
+	    	xvaluesInPixels[i]=toPixel(mcanvasWidth*2,xvaluesGroup.get(i));
 	    }
 	    
 		for (int i=0;i<mPlotNum;i++){	
@@ -128,11 +127,12 @@ public class PlotDynamic extends View{
 	 */
 	public void addData(float x,float y,int plotInd){
 		if (Float.isNaN(x) || Float.isNaN(y)) return;
-		ArrayList<Integer> yvalues = yvaluesGroup.get(plotInd);  
+		ArrayList<Integer> yvalues = yvaluesGroup.get(plotInd);
 		ArrayList<Float> xvalues = xvaluesGroup.get(plotInd);
 
 
-		yvalues.add(Integer.valueOf(toPixel(y)));	// add y value as pixel
+		//yvalues.add(Integer.valueOf(toPixel(y)));	// add y value as pixel
+		yvalues.add(Integer.valueOf(toPixel(y)));
 		xvalues.add(Float.valueOf(x));
 
 		
@@ -267,7 +267,7 @@ public class PlotDynamic extends View{
 		float halfpixels=mPixels/2;
 		
 		if(value>0){
-			//p = halfpixels+(value/mMaxy)*.9*halfpixels;
+			//p = halfpixels+(value/mMaxy)*.9*halfpixels;//TODO here
 			p = halfpixels+(value/mMaxy)*halfpixels;
 		}
 		else if(value<0){

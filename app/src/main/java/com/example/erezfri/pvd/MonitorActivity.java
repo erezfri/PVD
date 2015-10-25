@@ -9,13 +9,22 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.hardware.Camera;
+
+import android.hardware.camera2.CameraCaptureSession;
+
 import android.media.CamcorderProfile;
+import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.view.TextureView;
 import android.view.View;
@@ -27,12 +36,17 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MonitorActivity extends ActionBarActivity{
@@ -58,7 +72,6 @@ public class MonitorActivity extends ActionBarActivity{
 
     //start for camera preview
     private Camera mCamera;
-    private TextureView mTextureView;
     //end for camera preview
 
     // the scope graph customized view object
@@ -83,10 +96,13 @@ public class MonitorActivity extends ActionBarActivity{
     private MediaRecorder mediaRecorder;
     private int mSensorNum = 0;
 
+    private Timer myTimer;
+
+    private MediaStore mediaStore;
+
     private boolean recordingStatus = false;
 
     //FILES
-    public String[] mFileNameMulti,mFileNameControl;
     public ArrayList<File> mFileGroup;
     public ArrayList<FileWriter> mFileWriterGroup;
     private String sampleName = "";
@@ -112,13 +128,6 @@ public class MonitorActivity extends ActionBarActivity{
             Toast.makeText(getApplicationContext(), "Device does not support Bluetooth",
                     Toast.LENGTH_SHORT).show();
         }
-
-        //start for camera preview
-       // mTextureView = (TextureView)findViewById(R.id.textureView) ;
-       // mTextureView.setSurfaceTextureListener(this);
-        //setContentView(mTextureView);
-        //end for camera preview
-
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         myContext = this;
         initialize();
@@ -216,10 +225,10 @@ public class MonitorActivity extends ActionBarActivity{
         mPreview = new CameraPreview(myContext, mCamera);
         cameraPreview.addView(mPreview);
 
-
         capture = (Button) findViewById(R.id.button_capture);
         capture.setOnClickListener(captrureListener);
     }
+
 
     public void handleStartStop() {
         if (recording) {
@@ -227,6 +236,7 @@ public class MonitorActivity extends ActionBarActivity{
             mediaRecorder.stop(); // stop the recording
             releaseMediaRecorder(); // release the MediaRecorder object
             //Toast.makeText(MonitorActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
+            movieToFrames();
             recording = false;
         } else {
             try {
@@ -244,6 +254,17 @@ public class MonitorActivity extends ActionBarActivity{
 
                     try {
                         mediaRecorder.start();
+
+
+                       /* myTimer = new Timer();
+                        myTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                TimerMethod();
+                            }
+
+                        }, 0, 1000);*/
+
                     } catch (final Exception ex) {
                         // Log.i("---","Exception in thread");
                     }
@@ -253,6 +274,150 @@ public class MonitorActivity extends ActionBarActivity{
             recording = true;
         }
     }
+
+    public void movieToFrames() {
+
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/WPD/";
+        String filePath = path + sampleName + ".mp4" ;
+        MediaPlayer mp = MediaPlayer.create(this, Uri.parse(filePath));
+        int videoLengthInMillis = mp.getDuration();
+        retriever.setDataSource(filePath);
+
+        for(int i=1000000;i<videoLengthInMillis*1000;i+=1000000){
+
+            Bitmap bitmap = retriever.getFrameAtTime(i,MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+
+            String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures";
+            File imagesDir = new File(storageDir);
+            if(!imagesDir.exists())
+                imagesDir.mkdirs();
+
+            String timeStamp = new SimpleDateFormat("yyyyMMdd").format(new Date());
+            timeStamp = timeStamp + "_" + i/1000000 + "_sec";
+            String FILENAME = storageDir + "/" + timeStamp + ".jpg";
+            FileOutputStream fos = null;
+
+            try {
+                fos = new FileOutputStream(FILENAME);
+            } catch (FileNotFoundException e1) {}
+            try {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                fos.flush();
+                fos.close();
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        retriever.release();
+    }
+
+
+    Bitmap save(View v)
+    {
+        Bitmap b = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
+        v.draw(c);
+        return b;
+    }
+
+    private void TimerMethod()
+    {
+                //Bitmap bitmap;
+                View rv = mPreview;
+                rv.setDrawingCacheEnabled(true);
+                Bitmap bitmap = save(rv);
+                rv.setDrawingCacheEnabled(false);
+
+
+                // Write File to internal Storage
+
+                String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures";
+                File imagesDir = new File(storageDir);
+                if(!imagesDir.exists())
+                    imagesDir.mkdirs();
+
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                String FILENAME = storageDir + "/" + timeStamp + ".jpg";
+                FileOutputStream fos = null;
+
+                try {
+
+                    fos = new FileOutputStream(FILENAME);
+
+                } catch (FileNotFoundException e1) {}
+
+                try {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+                    fos.flush();
+                    fos.close();
+
+                } catch (FileNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+            }
+
+
+
+
+
+
+
+    String mCurrentPhotoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/WPD/Pictures";
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures";
+        File imagesDir = new File(storageDir);
+        if(!imagesDir.exists())
+            imagesDir.mkdirs();
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                imagesDir      /* directory */
+        );
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "file:" + imagesDir.getAbsolutePath();
+        return image;
+    }
+
+
+    static final int REQUEST_TAKE_PHOTO = 1;
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(mediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                takePictureIntent.putExtra(mediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photoFile));
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
+        }
+    }
+
+
+
+
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -303,6 +468,7 @@ public class MonitorActivity extends ActionBarActivity{
         sampleName =  "sample_" + c.getTime().toString();
         String myFile = path + sampleName + ".mp4" ;
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
+        //mediaRecorder.setVideoFrameRate();
         mediaRecorder.setOutputFile(myFile);
     //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
 
@@ -510,7 +676,7 @@ public class MonitorActivity extends ActionBarActivity{
         mFileWriterGroup= new ArrayList<FileWriter>();
 
         //create files and it's writers
-        File path2 = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        //File path2 = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/WPD";
         try{
             File file = new File(path, filename);
@@ -611,26 +777,6 @@ public class MonitorActivity extends ActionBarActivity{
             }
         }
     }
-
-//    /**
-//     * Add a specific sensor's sample to the Multi-Sensor component
-//     * return true only if the sample was added to graph
-//     * */
-//    //GRAPH
-//
-//    public boolean GraphAddData(PlotDynamic Graph){
-//
-//        if(mGraphMultiInd[mCurSensor]!=-1){
-//            Graph.addData(mCurTime,mCurVal,mGraphMultiInd[mCurSensor]);
-//            mGraphMultiCount++;
-//            if (mGraphMultiCount == mGraphMultiMax) {
-//                mGraphMultiCount=0;
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-
 
 
 }
