@@ -1,6 +1,7 @@
 package com.example.erezfri.pvd;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -23,6 +24,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
@@ -31,6 +33,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -107,6 +110,8 @@ public class MonitorActivity extends ActionBarActivity{
     public ArrayList<FileWriter> mFileWriterGroup;
     private String sampleName = "";
 
+    //Loading
+    ProgressDialog progressBar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -236,7 +241,6 @@ public class MonitorActivity extends ActionBarActivity{
             mediaRecorder.stop(); // stop the recording
             releaseMediaRecorder(); // release the MediaRecorder object
             //Toast.makeText(MonitorActivity.this, "Video captured!", Toast.LENGTH_LONG).show();
-            movieToFrames();
             recording = false;
         } else {
             try {
@@ -254,17 +258,6 @@ public class MonitorActivity extends ActionBarActivity{
 
                     try {
                         mediaRecorder.start();
-
-
-                       /* myTimer = new Timer();
-                        myTimer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                TimerMethod();
-                            }
-
-                        }, 0, 1000);*/
-
                     } catch (final Exception ex) {
                         // Log.i("---","Exception in thread");
                     }
@@ -283,18 +276,17 @@ public class MonitorActivity extends ActionBarActivity{
         MediaPlayer mp = MediaPlayer.create(this, Uri.parse(filePath));
         int videoLengthInMillis = mp.getDuration();
         retriever.setDataSource(filePath);
+        Calendar c = Calendar.getInstance();
+        String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures" + c.getTime().toString();
+        File imagesDir = new File(storageDir);
+        if(!imagesDir.exists())
+            imagesDir.mkdirs();
 
-        for(int i=1000000;i<videoLengthInMillis*1000;i+=1000000){
+        for(int i=33333;i<videoLengthInMillis*1000;i+=33333){ //assuming 30 frames per second.
 
             Bitmap bitmap = retriever.getFrameAtTime(i,MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-
-            String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures";
-            File imagesDir = new File(storageDir);
-            if(!imagesDir.exists())
-                imagesDir.mkdirs();
-
             String timeStamp = new SimpleDateFormat("yyyyMMdd").format(new Date());
-            timeStamp = timeStamp + "_" + i/1000000 + "_sec";
+            timeStamp = timeStamp + "_" + i/33333 + "_frame";
             String FILENAME = storageDir + "/" + timeStamp + ".jpg";
             FileOutputStream fos = null;
 
@@ -302,7 +294,7 @@ public class MonitorActivity extends ActionBarActivity{
                 fos = new FileOutputStream(FILENAME);
             } catch (FileNotFoundException e1) {}
             try {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, fos);
                 fos.flush();
                 fos.close();
             } catch (FileNotFoundException e) {
@@ -313,109 +305,9 @@ public class MonitorActivity extends ActionBarActivity{
                 e.printStackTrace();
             }
         }
+
         retriever.release();
     }
-
-
-    Bitmap save(View v)
-    {
-        Bitmap b = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(b);
-        v.draw(c);
-        return b;
-    }
-
-    private void TimerMethod()
-    {
-                //Bitmap bitmap;
-                View rv = mPreview;
-                rv.setDrawingCacheEnabled(true);
-                Bitmap bitmap = save(rv);
-                rv.setDrawingCacheEnabled(false);
-
-
-                // Write File to internal Storage
-
-                String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures";
-                File imagesDir = new File(storageDir);
-                if(!imagesDir.exists())
-                    imagesDir.mkdirs();
-
-                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                String FILENAME = storageDir + "/" + timeStamp + ".jpg";
-                FileOutputStream fos = null;
-
-                try {
-
-                    fos = new FileOutputStream(FILENAME);
-
-                } catch (FileNotFoundException e1) {}
-
-                try {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
-                    fos.flush();
-                    fos.close();
-
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            }
-
-
-
-
-
-
-
-    String mCurrentPhotoPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/WPD/Pictures";
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures";
-        File imagesDir = new File(storageDir);
-        if(!imagesDir.exists())
-            imagesDir.mkdirs();
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                imagesDir      /* directory */
-        );
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = "file:" + imagesDir.getAbsolutePath();
-        return image;
-    }
-
-
-    static final int REQUEST_TAKE_PHOTO = 1;
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(mediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                takePictureIntent.putExtra(mediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-        }
-    }
-
-
-
 
 
     @Override
@@ -502,23 +394,6 @@ public class MonitorActivity extends ActionBarActivity{
     }
     //end for camera preview
 
-
-    //bluetooth
-    private void sendMessage(String message) {
-        // Check that we're actually connected before trying anything
-        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
-            Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Check that there's actually something to send
-        if (message.length() > 0) {
-            // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            mBTService.write(send);
-
-        }
-    }
 
     //bluetooth connection
     private void connectDevice(Intent data) {
@@ -620,12 +495,27 @@ public class MonitorActivity extends ActionBarActivity{
                         TextView t = (TextView)findViewById(R.id.recordingStatus);
                         handleStartStop();
                         t.setVisibility(View.INVISIBLE);
-                        Toast.makeText(getApplicationContext(),"The video stopped", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(),"The video stopped, please wait", Toast.LENGTH_SHORT).show();
                         graphPreview = (LinearLayout) findViewById(R.id.graph_preview);
                         graphPreview.setVisibility(View.INVISIBLE);
+
+
                         //file:
                         CreateFile(sampleName + ".csv");
                         Packets2File(Packets);
+                        System.gc();
+
+                        //make frames
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run()
+                            {
+                                movieToFrames();
+                                System.gc();
+
+                            }
+                        }).start();
+                        Toast.makeText(getApplicationContext(),"Done", Toast.LENGTH_SHORT).show();
                     }
                     else if (msgString.startsWith("SampCountPos") && recordingStatus) {
 

@@ -82,4 +82,5 @@
         android:layout_below="@+id/searchButton"
         android:layout_centerHorizontal="true"   />
 
+
 </RelativeLayout>

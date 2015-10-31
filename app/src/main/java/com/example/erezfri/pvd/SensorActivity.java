@@ -149,12 +149,9 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     public enum ControlMessage {start};
     public int startMessage=-1;
 
-    public static boolean D_MULTI_SENSOR_SCOPE_VIEW;
     public static boolean D_MULTI_SENSOR_FILE;
-    public static boolean D_CONTROLLER_FILE;
 
     //GRAPH
-    //public String[] mAxesName;
     public String[] mNamesGroup;
     public int mGraphMultiNum=0;
 
@@ -164,11 +161,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
     private PlotDynamic mGraph;
     private Activity mActivity=this;
     private ArrayList<byte[]> Packets;
-
-    //FILES
-    public String[] mFileNameMulti,mFileNameControl;
-    public ArrayList<File> mFileGroup;
-    public ArrayList<FileWriter> mFileWriterGroup;
 
     //test for change the sensor type
     private Sensor senGyro;
@@ -263,7 +255,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                 mAcquisitionFlag = true;
                 registerSensorListener();
                 mBTService.write(getControlMessage(ControlMessage.start));
-                //sendMessagea(mExperimentManager.startMessage);
 
             }
             catch (Exception e){}
@@ -274,12 +265,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
             try{
                 sendMessage("STOP");
                 mSensorManager.unregisterListener((SensorEventListener)mActivity);
-//                if(D_MULTI_SENSOR_FILE){
-//                    Toast.makeText(mActivity,"Saving files and Leaving pendulum experiment" ,Toast.LENGTH_LONG).show();
-//                    CreateFile(mFileNameMulti, mActivity);
-//                    Packets2File(Packets);
-//                }
-                //finish();
 
             }catch (Exception e){}
             hideStopButton();
@@ -447,10 +432,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
      */
     public ArrayList<Sensor> getSensors(SensorManager sensorManager){
         ArrayList<Sensor> sensorGroup = new ArrayList<Sensor>(mSensorNum);
-//        boolean accelerometer = sensorManager.registerListener(this,sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),1);
-//        if (accelerometer){
-//            mSenorTypeGroup[0]=Sensor.TYPE_ACCELEROMETER;
-//        }
 
         //take the default sensors - HW
         if (mDefaultSensor){
@@ -477,14 +458,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
                 sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[i]));
             }
         }
-
-//        if (sensorGroup.size()==0)
-//        {
-//            mSenorTypeGroup[0] = Sensor.TYPE_ACCELEROMETER;
-//            sensorGroup.add(sensorManager.getDefaultSensor(mSenorTypeGroup[0]));
-//
-//        }
-
 
         return sensorGroup;
     }
@@ -519,17 +492,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
 
         }
 
-       //GRAPH
-        /*
-        if ((D_MULTI_SENSOR_SCOPE_VIEW)){
-            boolean toplotDifferFlag = GraphAddData(mGraph);
-            //same phase
-            if(mGraphMultiPhase && tosendFlag) mGraph.invalidate();
-                //different phase
-            else if (toplotDifferFlag)
-                mGraph.invalidate();
-        }
-        */
     }
 
     @Override
@@ -600,13 +562,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         }
     }
 
-//    private float ModifySensorVal(int SensorType,float val){
-//        float modval=val;
-//        if(SensorType==Sensor.TYPE_GRAVITY){
-//            modval = (float) (4*Math.asin(val/9.8));
-//        }
-//        return modval;
-//    }
 
 
     /**
@@ -628,25 +583,6 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
         }
     }
 
-    /**
-     * Sends a message.
-     * @param message  A string of text to send.
-     */
-//    private void sendMessagea(String message) { //
-//        // Check that we're actually connected before trying anything
-//        if (mBTService.getState() != BluetoothService.STATE_CONNECTED) {
-//            Toast.makeText(this,"Not connected to the bluetooth", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        // Check that there's actually something to send
-//        if (message.length() > 0) {
-//            // Get the message bytes and tell the BluetoothChatService to write
-//            byte[] send = message.getBytes();
-//            mBTService.write(send);
-//
-//        }
-//    }
     /**
      * Set the start time of the experiment:
      * set the first event time to be zero and set new packet.
