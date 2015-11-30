@@ -1,55 +1,55 @@
-package com.example.erezfri.pvd;
+        package com.example.erezfri.pvd;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.hardware.Camera;
+        import android.app.Activity;
+        import android.app.ProgressDialog;
+        import android.bluetooth.BluetoothAdapter;
+        import android.bluetooth.BluetoothDevice;
+        import android.bluetooth.BluetoothSocket;
+        import android.content.Context;
+        import android.content.Intent;
+        import android.content.pm.ActivityInfo;
+        import android.content.pm.PackageManager;
+        import android.content.res.Configuration;
+        import android.graphics.Bitmap;
+        import android.graphics.Canvas;
+        import android.hardware.Camera;
 
-import android.hardware.camera2.CameraCaptureSession;
+        import android.hardware.camera2.CameraCaptureSession;
 
-import android.media.CamcorderProfile;
-import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.provider.MediaStore;
-import android.support.v7.app.ActionBarActivity;
-import android.view.TextureView;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
+        import android.media.CamcorderProfile;
+        import android.media.MediaMetadataRetriever;
+        import android.media.MediaPlayer;
+        import android.media.MediaRecorder;
+        import android.net.Uri;
+        import android.os.Bundle;
+        import android.os.Environment;
+        import android.os.Handler;
+        import android.os.Looper;
+        import android.os.Message;
+        import android.provider.MediaStore;
+        import android.support.v7.app.ActionBarActivity;
+        import android.view.TextureView;
+        import android.view.View;
+        import android.view.WindowManager;
+        import android.widget.Button;
+        import android.widget.LinearLayout;
+        import android.widget.ProgressBar;
+        import android.widget.TextView;
+        import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+        import java.io.BufferedReader;
+        import java.io.File;
+        import java.io.FileNotFoundException;
+        import java.io.FileOutputStream;
+        import java.io.FileWriter;
+        import java.io.IOException;
+        import java.nio.ByteBuffer;
+        import java.text.SimpleDateFormat;
+        import java.util.ArrayList;
+        import java.util.Calendar;
+        import java.util.Date;
+        import java.util.Timer;
+        import java.util.TimerTask;
 
 
 public class MonitorActivity extends ActionBarActivity{
@@ -157,13 +157,10 @@ public class MonitorActivity extends ActionBarActivity{
         return cameraId;
     }
 
-      public void onSearchButtonClick(View view) {
+    public void onSearchButtonClick(View view) {
         if (!myBluetoothAdapter.isEnabled()) {
             Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
-//
-//            Toast.makeText(getApplicationContext(), "Bluetooth turned on",
-//                    Toast.LENGTH_LONG).show();
         }else {
             BluetoothCond=true;
             Intent serverIntent = new Intent(this, DeviceListActivity.class);
@@ -208,19 +205,14 @@ public class MonitorActivity extends ActionBarActivity{
             finish();
         }
         if (mCamera == null) {
-            // if the front facing camera does not exist
-//            if (findFrontFacingCamera() < 0) {
-//                Toast.makeText(this, "No front facing camera found.", Toast.LENGTH_LONG).show();
-//               // switchCamera.setVisibility(View.GONE);
-//            }
             mCamera = Camera.open(findBackFacingCamera());
             if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
                 mCamera.setDisplayOrientation(90);
-               // mCamera.setDisplayOrientation(0);
+                // mCamera.setDisplayOrientation(0);
             } else {
                 mCamera.setDisplayOrientation(0);
             }
-          //  mCamera.setDisplayOrientation(90);
+            //  mCamera.setDisplayOrientation(90);
             mPreview.refreshCamera(mCamera);
         }
     }
@@ -279,8 +271,9 @@ public class MonitorActivity extends ActionBarActivity{
         Calendar c = Calendar.getInstance();
         String storageDir = Environment.getExternalStorageDirectory().getAbsolutePath()+ "/WPD/Pictures" + c.getTime().toString();
         File imagesDir = new File(storageDir);
-        if(!imagesDir.exists())
+        if(!imagesDir.exists()) {
             imagesDir.mkdirs();
+        }
 
         for(int i=33333;i<videoLengthInMillis*1000;i+=33333){ //assuming 30 frames per second.
 
@@ -349,9 +342,9 @@ public class MonitorActivity extends ActionBarActivity{
 
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-      //  mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
-       // mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-       // mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        //  mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
+        // mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        // mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/WPD/";
         File dir = new File(path);
         if(!dir.exists())
@@ -362,7 +355,7 @@ public class MonitorActivity extends ActionBarActivity{
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
         //mediaRecorder.setVideoFrameRate();
         mediaRecorder.setOutputFile(myFile);
-    //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
+        //    mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath());
 
         mediaRecorder.setMaxDuration(3000000); // Set max duration 60 sec * 5 = 5 minutes.//TODO think about it
         mediaRecorder.setMaxFileSize(800000000); // Set max file size 800M//TODO think about it
@@ -422,7 +415,7 @@ public class MonitorActivity extends ActionBarActivity{
 
                 // When the request for enabling bluetooth returns
                 if (resultCode == Activity.RESULT_OK){
-                        //connectDevice(getIntent());
+                    //connectDevice(getIntent());
                     if (!BluetoothCond) {
                         Intent serverIntent = new Intent(this, DeviceListActivity.class);
                         startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
@@ -435,7 +428,7 @@ public class MonitorActivity extends ActionBarActivity{
                 }
                 else{
                     //User didn't enable bluetooth or error was occurred
-                   // Log.d(TAG, "BT not enabled");
+                    // Log.d(TAG, "BT not enabled");
                     Toast.makeText(this,"Bluetooth was not enabled", Toast.LENGTH_SHORT).show();
                     finish();
 
@@ -580,7 +573,7 @@ public class MonitorActivity extends ActionBarActivity{
             //put file tables titles
             for (int i=0;i<mSensorNum;i++){
                 FileWriter filewriter = mFileWriterGroup.get(i);
-                
+
                 filewriter.append("time[sec]");
                 filewriter.append(',');
                 filewriter.append("value,");

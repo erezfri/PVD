@@ -19,6 +19,7 @@ import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -203,6 +204,8 @@ public class SensorActivity extends ActionBarActivity implements SensorEventList
             sensorType.setText("Accelerometer Sensor is ready");
         }
         mSensorGroup = getSensors(mSensorManager);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
 
